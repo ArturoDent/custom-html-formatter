@@ -1,0 +1,54 @@
+{
+  "name": "custom-html-formatter",
+  "displayName": "Custom HTML Formatter",
+  "description": "Use custom rules to format html",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Custom HTML Formatter",
+      "properties": {
+        "customHtmlFormatter.rules": {
+          "type": "object",
+          "default": {
+            "noIndentUnder": [
+              "body"
+            ],
+            "indentSize": 2,
+            "preserveBlankLines": true
+          },
+          "description": "Selector based indentation rules for the custom HTML formatter"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "parse5": "^7.1.2"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.107.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.25.1",
+    "typescript": "^5.8.3"
+  }
+}
