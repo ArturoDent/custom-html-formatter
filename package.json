@@ -2,6 +2,12 @@
   "name": "custom-html-formatter",
   "displayName": "Custom HTML Formatter",
   "description": "Use custom rules to format html",
+  "publisher": "ArturoDent",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArturoDent/custom-html-formatter"
+  },
+  "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.107.0"
@@ -9,7 +15,9 @@
   "categories": [
     "Formatters"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:html"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
@@ -31,11 +39,12 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && node scripts/copy-fixtures.js",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "pretest": "npm run compile && npm run lint && npm run copy:fixtures",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "copy:fixtures": "node scripts/copy-fixtures.js"
   },
   "dependencies": {
     "parse5": "^7.1.2"
@@ -48,7 +57,9 @@
     "@typescript-eslint/parser": "^8.31.1",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2",
+    "diff": "^8.0.2",
     "eslint": "^9.25.1",
+    "glob": "^13.0.0",
     "typescript": "^5.8.3"
   }
 }

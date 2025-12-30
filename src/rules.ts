@@ -5,8 +5,10 @@ export interface IndentRules {
 }
 
 export function loadRulesFromConfig(raw: any): IndentRules {
+  
+  // TODO: the defaults s/b nulls
   const defaults: IndentRules = {
-    noIndentUnder: ["body"],
+    noIndentUnder: ["body", "html"],
     indentSize: 2,
     preserveBlankLines: true
   };

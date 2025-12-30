@@ -1,0 +1,29 @@
+src/test/fixtures/
+  normalize/
+    normalize.config.json        ← folder default
+
+    basic.input.html
+    basic.expected.html
+    basic.config.json            ← per‑fixture override
+
+    nested.input.html
+    nested.expected.html         ← uses folder default
+
+  tabs/
+    tabs.config.json
+
+    simple.input.html
+    simple.expected.html
+    
+ 
+Folder‑level default config   
+{
+  "noIndentUnder": ["html", "body"],
+  "indentSize": 2
+}
+
+Per‑fixture config
+{
+  "indentSize": 4  // only this overridden
+}
+
