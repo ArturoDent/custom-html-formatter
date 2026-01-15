@@ -16,14 +16,38 @@ src/test/fixtures/
     simple.expected.html
     
  
-Folder‑level default config   
-{
-  "noIndentUnder": ["html", "body"],
-  "indentSize": 2
+ // dryRun into Diagnostics
+if (state === "active" && dryRunEnabled) {
+  const preview = getDocumentChanges(original, rules);
+
+  for (const impact of preview.ruleImpacts) {
+    diagnostics.push(
+      new vscode.Diagnostic(
+        new vscode.Range(impact.line, 0, impact.line, 0),
+        `Rule ${impact.rule} would change indentation by ${impact.delta} spaces.`,
+        vscode.DiagnosticSeverity.Information
+      )
+    );
+  }
 }
 
-Per‑fixture config
-{
-  "indentSize": 4  // only this overridden
-}
+  // if (state === "builtin") {
+  //   const diag = new vscode.Diagnostic(
+  //     new vscode.Range(0, 0, 0, 0),
+  //     "Using VS Code's built-in HTML formatter.",
+  //     vscode.DiagnosticSeverity.Information
+  //   );
+  //   diag.code = DiagnosticCodes.BuiltIn;
+  //   diag.source = "Custom HTML Formatter";
+  //   diagnostics.push(diag);
+  // }
+  
+          // case DiagnosticCodes.BuiltIn:
+        //   // switch to Custom HTML Formatter
+        //   actions.push(this.enableDefaultsAction());
+        //   // choose a formatter from vscode pop-up
+        //   // actions.push(this.chooseFormatterAction());
+        //   break;
+
+
 

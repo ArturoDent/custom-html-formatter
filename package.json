@@ -8,7 +8,7 @@
     "url": "https://github.com/ArturoDent/custom-html-formatter"
   },
   "license": "MIT",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.107.0"
   },
@@ -18,21 +18,75 @@
   "activationEvents": [
     "onLanguage:html"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/vscode/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "customHtmlFormatter.enableWithDefaults",
+        "title": "Create defaultFormatter and rules settings",
+        "category": "Custom HTML Formatter"
+      },
+      {
+        "command": "customHtmlFormatter.restoreBuiltinHtmlFormatter",
+        "title": "Revert to default html formatter",
+        "category": "Custom HTML Formatter"
+      },
+      {
+        "command": "customHtmlFormatter.dryRun",
+        "title": "Dry-run preview changes",
+        "category": "Custom HTML Formatter"
+      },
+      {
+        "command": "customHtmlFormatter.showHealth",
+        "title": "Show Health",
+        "category": "Custom HTML Formatter"
+      }
+    ],
     "configuration": {
       "title": "Custom HTML Formatter",
       "properties": {
         "customHtmlFormatter.rules": {
           "type": "object",
-          "default": {
-            "noIndentUnder": [
-              "body"
-            ],
-            "indentSize": 2,
-            "preserveBlankLines": true
+          "default": {},
+          "description": "Selector-based indentation rules for the Custom HTML Formatter",
+          "properties": {
+            "noIndentUnder": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z][a-zA-Z0-9-]*$"
+              },
+              "description": "HTML tag names whose direct children should not be indented"
+            },
+            "indentSize": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Number of spaces per indentation level"
+            }
           },
-          "description": "Selector based indentation rules for the custom HTML formatter"
+          "additionalProperties": false,
+          "examples": [
+            {
+              "noIndentUnder": [
+                "html",
+                "body"
+              ],
+              "indentSize": 2
+            }
+          ]
+        },
+        "customHtmlFormatter.configWriteScope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "global"
+          ],
+          "enumDescriptions": [
+            "Write to this workspace's settings only",
+            "Write to the global (or user)  settings - affects all workspaces"
+          ],
+          "default": "workspace",
+          "description": "Write the rules and default formatter choice to global (user) or workspace settings."
         }
       }
     }
@@ -56,7 +110,6 @@
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.5.2",
     "diff": "^8.0.2",
     "eslint": "^9.25.1",
     "glob": "^13.0.0",

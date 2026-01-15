@@ -23,9 +23,9 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
-				"--new-window",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
+				"--extensionTestsPath=${workspaceFolder}/out/test/suite",
+				// "--user-data-dir=${workspaceFolder}/.vscode-test-user-data"
 			]
 		}
 	]

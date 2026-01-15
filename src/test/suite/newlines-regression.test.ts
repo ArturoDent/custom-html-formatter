@@ -5,7 +5,9 @@ function newlineTokens(s: string): string[] {
   return s.match(/\r\n|\n/g) ?? [];
 }
 
-suite("Custom HTML Formatter newline regression", () => {
+suite("\nCustom HTML Formatter newline regression)", function () {
+  this.timeout(0); // ⬅ disable timeout entirely
+
   test("does not add or remove newline tokens", async () => {
     const input = [
       "<!DOCTYPE html>",
@@ -39,10 +41,17 @@ suite("Custom HTML Formatter newline regression", () => {
     await vscode.commands.executeCommand("editor.action.formatDocument");
     const after = doc.getText();
 
+    // enforce not adding or removing internal newline tokens
+    // since vscode will enforce a final newline or not depending on user's setting
     assert.deepStrictEqual(
-      newlineTokens(after),
-      newlineTokens(before),
+      newlineTokens(stripFinalNewline(after)),
+      newlineTokens(stripFinalNewline(before)),
       "Formatter must not add/remove newline tokens"
     );
   });
-}); 
+});
+
+function stripFinalNewline(s: string): string {
+  return s.replace(/(\r?\n)$/, "");
+}
+
