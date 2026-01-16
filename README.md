@@ -113,11 +113,7 @@ noIndentUnder(body): 3 indentation changes
 No changes were applied.
 ```
 
-Think of that as indentation changed on 4 **lines** for direct descendants of the `<html>` tag.  And on 3 lines for direct decendants of the `<body>` tag.
-
-If a element's start and end tags are on different lines, they would both be formatted under this extension, that is 2 lines.
-
-If a element's start and end tags are on the same line, only one line changes, not two.
+Think of that as indentation changed for 4 **tags** for direct descendants of the `<html>` tag.  And for 3 tags for direct decendants of the `<body>` tag.  
 
 4. **Custom HTML Formatter: Show Health**  
 customHtmlFormatter.health

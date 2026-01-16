@@ -8,7 +8,7 @@
     "url": "https://github.com/ArturoDent/custom-html-formatter"
   },
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.107.0"
   },

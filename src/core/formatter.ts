@@ -55,8 +55,11 @@ export function getDocumentChanges(
   text: string,
   rules: FormatterRules
 ): FormatResult {
+
   // Clear any previously recorded rule impacts before formatting.
   clearRuleImpacts();
+
+  const recordedTagImpacts = new Set<string>(); // per run
 
   const lines = splitLines( text );
   const indentUnit = " ".repeat( rules.indentSize ?? 2 );
@@ -68,7 +71,7 @@ export function getDocumentChanges(
 
   // Walk the parse tree and compute indentation per line.
   for ( const node of doc.childNodes ?? [] ) {
-    collectIndentation( node, null, 0, rules, indentUnit, indentByLine );
+    collectIndentation( node, null, 0, rules, indentUnit, indentByLine, recordedTagImpacts );
   }
 
   // Apply computed indentation to the original lines.
@@ -102,14 +105,20 @@ function parseHtmlWithLocations( text: string ): any {
 /**
  * Formatting model overview:
  *
- * - Structural depth reflects the parse tree hierarchy.
- * - Effective depth reflects how indentation should appear.
+ * - The parse tree defines structural hierarchy.
+ * - Visual depth defines how indentation should appear.
  *
- * Structural depth is used for traversal.
- * Effective depth is used for formatting.
+ * Structural depth is implicit in the tree and used only for traversal.
+ * Visual depth is tracked explicitly and used for formatting.
  *
- * Recursion must always follow effective depth.
+ * Visual depth normally increases by one per level,
+ * but may be suppressed or reset by visual-root rules
+ * (e.g. <html>, noIndentUnder(...)).
+ *
+ * Recursion follows the parse tree.
+ * Formatting uses visual depth.
  */
+
 
 /**
  * Walks the HTML tree and computes indentation for each element.
@@ -120,102 +129,117 @@ function parseHtmlWithLocations( text: string ): any {
 function collectIndentation(
   node: Parse5Node,
   parent: ElementWithLocation | null,
-  structuralDepth: number,
+  visualDepth: number,
   rules: FormatterRules,
   indentUnit: string,
   indentByLine: Map<number, string>,
-  suppressionClaimed: boolean = false // suppression if an ancestor has already impacted
+  recordedTagImpacts: Set<string>
 ): void {
+
+  if ( isDoctype( node ) ) return;
+  if ( !isElement( node ) ) return;
 
   const editor = vscode.window.activeTextEditor;
   if ( !editor ) return;
   const document = editor.document;
 
-  if ( isDoctype( node ) ) return;
-  if ( !isElement( node ) ) return;
-
   const el = node as ElementWithLocation;
   const loc = el.sourceCodeLocation;
   if ( !loc ) return;
 
-  const isDirectChildOfNoIndent =
-    parent !== null && rules.noIndentUnder.includes( parent.tagName );
+  const indent = indentUnit.repeat( visualDepth );
 
-  const isNearestNoIndent =
-    isDirectChildOfNoIndent && !suppressionClaimed;
+  function isBlankLine( line: number ): boolean {
+    return /^[ \t]*$/.test( document.lineAt( line - 1 ).text );
+  }
+
+  function indentationChanged( line: number ): boolean {
+    if ( isBlankLine( line ) ) return false;
+    const existing = getExistingIndent( document, line );
+    return existing !== indent;
+  }
+
+  // Apply indentation
+  indentByLine.set( loc.startLine, indent );
+  if ( loc.endTag?.startLine ) {
+    indentByLine.set( loc.endTag.startLine, indent );
+  }
+
+  // Determine whether a rule applies *here*
+  // const ruleTag =
+  //   parent?.tagName === "html"
+  //     ? "html"
+  //     : rules.noIndentUnder.includes( parent?.tagName ?? "" )
+  //       ? parent!.tagName
+  //       : null;
+  const ruleTag =
+    rules.noIndentUnder.includes( parent?.tagName ?? "" )
+      ? parent!.tagName
+      : null;
 
 
-  const effectiveDepth = computeEffectiveDepth(
-    structuralDepth,
-    parent,
-    rules
-  );
+  // Record rule impact ONCE per element if either tag changed
+  if ( ruleTag ) {
+    let changed = false;
 
-  // If indentation is suppressed by a rule, record the impact.
-  if ( isDirectChildOfNoIndent && parent ) {
+    if ( indentationChanged( loc.startLine ) ) {
+      changed = true;
+    }
 
-    const newIndent = indentUnit.repeat( effectiveDepth );
-    const existingIndent = getExistingIndent( document, loc.startLine );
+    if (
+      loc.endTag?.startLine &&
+      indentationChanged( loc.endTag.startLine )
+    ) {
+      changed = true;
+    }
 
-    if ( newIndent !== existingIndent ) {
-      const delta = newIndent.length - existingIndent.length;
+    if ( changed ) {
+      const impactKey = `${ruleTag}:${loc.startLine}`;
 
-      recordRuleImpact(
-        document.fileName,
-        `noIndentUnder(${parent.tagName})`,
-        delta,
-        loc.startLine
-      );
+      if ( !recordedTagImpacts.has( impactKey ) ) {
+        recordedTagImpacts.add( impactKey );
 
-      // handle the endTag, which may or may not need its indentation modified
-      if (
-        loc.endTag?.startLine &&
-        loc.endTag.startLine !== loc.startLine
-      ) {
-        const existingEndIndent = getExistingIndent(
-          document,
-          loc.endTag.startLine
+        const delta =
+          indent.length -
+          indentUnit.repeat( visualDepth + 1 ).length;
+
+        recordRuleImpact(
+          document.fileName,
+          `noIndentUnder(${ruleTag})`,
+          delta,
+          loc.startLine
         );
-
-        if ( newIndent !== existingEndIndent ) {
-          const endDelta = newIndent.length - existingEndIndent.length;
-
-          recordRuleImpact(
-            document.fileName,
-            `noIndentUnder(${parent.tagName})`,
-            endDelta,
-            loc.endTag.startLine
-          );
-        }
       }
     }
   }
 
-  // Apply computed indentation to start and end tags.
-  indentByLine.set( loc.startLine, indentUnit.repeat( effectiveDepth ) );
+  // Compute child visual depth
+  let childVisualDepth = visualDepth + 1;
 
-  if ( loc.endTag?.startLine ) {
-    indentByLine.set(
-      loc.endTag.startLine,
-      indentUnit.repeat( effectiveDepth )
-    );
+  // // <html> is structural-only
+  // if ( el.tagName === "html" ) {
+  //   childVisualDepth = visualDepth;
+  // }
+
+  // noIndentUnder creates a visual root (e.g. <body>)
+  if ( rules.noIndentUnder.includes( el.tagName ) ) {
+    childVisualDepth = 0;
   }
 
-  // Recurse using *effectiveDepth*, not structuralDepth.
-  // Once indentation is suppressed, children must resume indentation
-  // relative to the suppressed parent — not the document root.
+  // Recurse
   for ( const child of el.childNodes ?? [] ) {
     collectIndentation(
       child,
       el,
-      effectiveDepth + 1,
+      childVisualDepth,
       rules,
       indentUnit,
       indentByLine,
-      isNearestNoIndent
+      recordedTagImpacts
     );
   }
 }
+
 
 // get the pre-existing indentation on a line - before any changes
 function getExistingIndent(
@@ -227,25 +251,6 @@ function getExistingIndent(
 }
 
 
-/**
- * Computes the effective indentation depth for an element.
- *
- * Rules may override structural depth to suppress indentation
- * under specific parent elements.
- */
-function computeEffectiveDepth(
-  structuralDepth: number,
-  parent: ElementWithLocation | null,
-  rules: FormatterRules
-): number {
-  if ( !parent ) return structuralDepth;
-
-  if ( rules.noIndentUnder.includes( parent.tagName ) ) {
-    return 0;
-  }
-
-  return structuralDepth;
-}
 
 /**
  * Splits text into lines while normalizing line endings.

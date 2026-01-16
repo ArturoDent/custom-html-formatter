@@ -17,7 +17,7 @@ import {
 	enableDefaults,
 	restoreBuiltinHtmlFormatter,
 	showQuickPickOptions,
-	setCurrentConfigs
+	getCurrentConfigs
 } from "../state/formatterState";
 import { executeDryRun } from "./dryRun";
 import { updateformatterSBI } from "./statusBar";
@@ -166,7 +166,6 @@ export async function activate( context: vscode.ExtensionContext ) {
 
 			const configs = await computeCurrentConfigs();
 			initCurrentConfigs( configs );
-			// setCurrentConfigs( configs );
 			setLastFormatterState( configs.formatterState );
 
 			await updateformatterSBI( formatterSBI );
@@ -223,7 +222,7 @@ export async function activate( context: vscode.ExtensionContext ) {
 			document: vscode.TextDocument
 		): Promise<vscode.TextEdit[] | null> {
 
-			const rules = configs.rules;
+			const rules = getCurrentConfigs()?.rules;
 
 			// Formatter is selected but not configured.
 			if ( !rules ) {
