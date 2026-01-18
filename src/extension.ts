@@ -18,13 +18,13 @@ import {
 	restoreBuiltinHtmlFormatter,
 	showQuickPickOptions,
 	getCurrentConfigs
-} from "../state/formatterState";
-import { executeDryRun } from "./dryRun";
-import { updateformatterSBI } from "./statusBar";
-import { computeFormatterDiagnostics, updateAllHtmlDiagnostics } from "./diagnostics";
-import { FormatterCodeActionProvider } from "./codeActions";
-import { collectFormatterHealth } from "../state/formatterHealth";
-import { renderHealthSnapshot } from "../state/formatterHealthOutput";
+} from "./state/formatterState";
+import { executeDryRun } from "./ui/dryRun";
+import { formatterStatusBar, updateFormatterStatusBar, showFormatterStatusBar, hideFormatterStatusBar } from "./ui/statusBar";
+import { formatterDiagnostics, computeFormatterDiagnostics, updateAllHtmlDiagnostics } from "./ui/diagnostics";
+import { registerFormatterCodeActions } from "./ui/codeActions";
+import { collectFormatterHealth } from "./state/formatterHealth";
+import { renderHealthSnapshot } from "./state/formatterHealthOutput";
 
 import {
 	getLastFormattedUri,
@@ -34,15 +34,15 @@ import {
 	isAwaitingFormatResultVersion,
 	recordFormatResultVersion,
 	getLastFormattedResultVersion
-} from "../state/formatRunState";
+} from "./state/formatRunState";
 
-import { getDocumentChanges } from "../core/formatter";
-import { loadRulesFromConfig } from "../core/rules";
+import { getDocumentChanges } from "./core/formatter";
+import { loadRulesFromConfig } from "./core/rules";
 import {
 	type RuleImpact,
 	setLastRuleImpacts,
 	clearLastRuleImpacts
-} from "../core/ruleImpact";
+} from "./core/ruleImpact";
 
 // Test-only escape hatch for retrieving rule impacts.
 // This is intentionally not part of the public API.
@@ -115,40 +115,28 @@ export async function activate( context: vscode.ExtensionContext ) {
 	// ---------------- Diagnostics ----------------
 	// Diagnostics reflect broken formatter state only,
 	// not merely inactive or unconfigured behavior.
-	const formatterDiagnostics =
-		vscode.languages.createDiagnosticCollection( "custom-html-formatter" );
 
 	context.subscriptions.push( formatterDiagnostics );
 
 	const diagnostics = computeFormatterDiagnostics();
-	updateAllHtmlDiagnostics( diagnostics, formatterDiagnostics );
+	updateAllHtmlDiagnostics( diagnostics );
 	// ---------------------------------------------
 
 	// ---------------- Code Actions ----------------
-	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider(
-			"html",
-			new FormatterCodeActionProvider(),
-			{
-				providedCodeActionKinds:
-					FormatterCodeActionProvider.providedCodeActionKinds
-			}
-		)
-	);
+	// registration
+	context.subscriptions.push( registerFormatterCodeActions() );
 	// ----------------------------------------------
 
 	// ---------------- Status Bar ------------------
 	// The status bar reflects formatter state for the active editor only, i.e., all html files.
-	const formatterSBI = vscode.window.createStatusBarItem( vscode.StatusBarAlignment.Right, 500 );
+	// Created automatically by importing 'statusBar.ts'
 
-	formatterSBI.command = "customHtmlFormatter.statusClick";
+	context.subscriptions.push( formatterStatusBar );
 
 	if ( vscode.window.activeTextEditor?.document.languageId === "html" ) {
-		await updateformatterSBI( formatterSBI );
-		formatterSBI.show();
+		await updateFormatterStatusBar();
+		showFormatterStatusBar();
 	}
-
-	context.subscriptions.push( formatterSBI );
 	// ---------------------------------------------
 
 	// invalidate runtime formatter state and update SBI and diagnostics.
@@ -168,23 +156,23 @@ export async function activate( context: vscode.ExtensionContext ) {
 			initCurrentConfigs( configs );
 			setLastFormatterState( configs.formatterState );
 
-			await updateformatterSBI( formatterSBI );
+			await updateFormatterStatusBar();
 
 			const diagnostics = computeFormatterDiagnostics();
-			updateAllHtmlDiagnostics( diagnostics, formatterDiagnostics );
+			updateAllHtmlDiagnostics( diagnostics );
 		} ),
 
 		vscode.window.onDidChangeActiveTextEditor( async () => {
 
 			if ( vscode.window.activeTextEditor?.document.languageId === "html" ) {
-				await updateformatterSBI( formatterSBI );
-				formatterSBI.show();
+				await updateFormatterStatusBar();
+				showFormatterStatusBar();
 
 				const diagnostics = computeFormatterDiagnostics();
-				updateAllHtmlDiagnostics( diagnostics, formatterDiagnostics );
+				updateAllHtmlDiagnostics( diagnostics );
 			}
 			else {
-				formatterSBI.hide();
+				hideFormatterStatusBar();
 			}
 		} ),
 

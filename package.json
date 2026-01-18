@@ -18,7 +18,7 @@
   "activationEvents": [
     "onLanguage:html"
   ],
-  "main": "./out/vscode/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -110,6 +110,7 @@
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
     "diff": "^8.0.2",
     "eslint": "^9.25.1",
     "glob": "^13.0.0",

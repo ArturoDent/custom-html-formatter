@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import type { FormatterHealthSnapshot } from './formatterHealth';
-import { getHealthOutputChannel } from '../vscode/output';
+// import { getHealthOutputChannel } from '../ui/output';
+import { getHealthOutputChannel } from '../ui/output';
 
 
 export function renderHealthSnapshot( snapshot: FormatterHealthSnapshot ): void {
@@ -57,8 +58,6 @@ function renderSection( channel: vscode.OutputChannel, title: string, entries: R
 function renderLastRun( channel: vscode.OutputChannel, lastRun: NonNullable<FormatterHealthSnapshot["lastRun"]> ): void {
 
   channel.appendLine( "Last Run" );
-
-  channel.appendLine( `  ${lastRun.fileName}` );
 
   channel.appendLine(
     `  Timestamp: ${new Date( lastRun.timestamp ).toLocaleString()}`

@@ -71,7 +71,7 @@ export function getDocumentChanges(
 
   // Walk the parse tree and compute indentation per line.
   for ( const node of doc.childNodes ?? [] ) {
-    collectIndentation( node, null, 0, rules, indentUnit, indentByLine, recordedTagImpacts );
+    collectIndentation( node, null, 0, rules, indentUnit, indentByLine, recordedTagImpacts, lines );
   }
 
   // Apply computed indentation to the original lines.
@@ -133,15 +133,16 @@ function collectIndentation(
   rules: FormatterRules,
   indentUnit: string,
   indentByLine: Map<number, string>,
-  recordedTagImpacts: Set<string>
+  recordedTagImpacts: Set<string>,
+  lines: string[]
 ): void {
 
   if ( isDoctype( node ) ) return;
   if ( !isElement( node ) ) return;
 
-  const editor = vscode.window.activeTextEditor;
-  if ( !editor ) return;
-  const document = editor.document;
+  // const editor = vscode.window.activeTextEditor;
+  // if ( !editor ) return;
+  // const document = editor.document;
 
   const el = node as ElementWithLocation;
   const loc = el.sourceCodeLocation;
@@ -149,15 +150,20 @@ function collectIndentation(
 
   const indent = indentUnit.repeat( visualDepth );
 
+  function getLineText( line: number ): string {
+    return lines[line - 1] ?? "";
+  }
+
   function isBlankLine( line: number ): boolean {
-    return /^[ \t]*$/.test( document.lineAt( line - 1 ).text );
+    return /^[ \t]*$/.test( getLineText( line ) );
   }
 
   function indentationChanged( line: number ): boolean {
     if ( isBlankLine( line ) ) return false;
-    const existing = getExistingIndent( document, line );
+    const existing = getExistingIndent( getLineText( line ) );
     return existing !== indent;
   }
+
 
   // Apply indentation
   indentByLine.set( loc.startLine, indent );
@@ -165,18 +171,16 @@ function collectIndentation(
     indentByLine.set( loc.endTag.startLine, indent );
   }
 
-  // Determine whether a rule applies *here*
   // const ruleTag =
-  //   parent?.tagName === "html"
-  //     ? "html"
-  //     : rules.noIndentUnder.includes( parent?.tagName ?? "" )
-  //       ? parent!.tagName
-  //       : null;
-  const ruleTag =
-    rules.noIndentUnder.includes( parent?.tagName ?? "" )
-      ? parent!.tagName
-      : null;
+  //   rules.noIndentUnder.includes( parent?.tagName ?? "" )
+  //     ? parent!.tagName
+  //     : null;
 
+  const parentTag = parent?.tagName;
+  const ruleTag =
+    parentTag && rules.noIndentUnder.includes( parentTag )
+      ? parentTag
+      : null;
 
   // Record rule impact ONCE per element if either tag changed
   if ( ruleTag ) {
@@ -193,6 +197,15 @@ function collectIndentation(
       changed = true;
     }
 
+    // if (
+    //   ruleApplies &&
+    //   !isBlankLine( line ) &&
+    //   indentationChanged( line )
+    // ) {
+    //   recordRuleImpact( ...);
+    // }
+
+
     if ( changed ) {
       const impactKey = `${ruleTag}:${loc.startLine}`;
 
@@ -204,7 +217,6 @@ function collectIndentation(
           indentUnit.repeat( visualDepth + 1 ).length;
 
         recordRuleImpact(
-          document.fileName,
           `noIndentUnder(${ruleTag})`,
           delta,
           loc.startLine
@@ -235,7 +247,8 @@ function collectIndentation(
       rules,
       indentUnit,
       indentByLine,
-      recordedTagImpacts
+      recordedTagImpacts,
+      lines
     );
   }
 }
@@ -243,10 +256,10 @@ function collectIndentation(
 
 // get the pre-existing indentation on a line - before any changes
 function getExistingIndent(
-  document: vscode.TextDocument,
-  line: number
-): string {
-  const text = document.lineAt( line - 1 ).text;
+  // document: vscode.TextDocument,
+  text: string ): string {
+  // const text = document.lineAt( line - 1 ).text;
+  // const text = lines[line];
   return text.match( /^\s*/ )?.[0] ?? "";
 }
 

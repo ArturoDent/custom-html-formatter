@@ -20,7 +20,6 @@ export interface FormatterHealthSnapshot {
   };
 
   lastRun?: {
-    fileName: string;
     timestamp: number; // epoch ms
     mode: FormatterLastRunMode;
     linesAffected: number;
@@ -152,7 +151,6 @@ function getNoIndentUnder(): string[] {
 
 function getLastRunSnapshot():
   | {
-    fileName: string,
     timestamp: number;
     mode: FormatterLastRunMode;
     linesAffected: number;
@@ -168,7 +166,6 @@ function getLastRunSnapshot():
   const summary = summarizeRuleImpacts( impacts );
 
   return {
-    fileName: impacts[0].fileName,
     timestamp: Date.now(),
     mode, // "format" | "dryRun"
     linesAffected: summary.reduce( ( n, r ) => n + r.count, 0 ),

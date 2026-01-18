@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
-
 import { getLastFormatterState } from "../state/formatterState";
+
+export const formatterDiagnostics =
+  vscode.languages.createDiagnosticCollection( "custom-html-formatter" );
 
 /**
  * Diagnostic codes emitted by the Custom HTML Formatter.
@@ -74,11 +76,11 @@ export function computeFormatterDiagnostics(): vscode.Diagnostic[] {
 /**
  * Updates formatter diagnostics for all open html files.
  */
-export function updateAllHtmlDiagnostics( diagnostics: vscode.Diagnostic[], collection: vscode.DiagnosticCollection ) {
+export function updateAllHtmlDiagnostics( diagnostics: vscode.Diagnostic[] ) {
 
   for ( const doc of vscode.workspace.textDocuments ) {
     if ( doc.languageId === "html" ) {
-      collection.set( doc.uri, diagnostics );
+      formatterDiagnostics.set( doc.uri, diagnostics );
     }
   }
 }

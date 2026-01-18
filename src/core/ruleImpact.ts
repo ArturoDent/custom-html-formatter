@@ -6,7 +6,6 @@
  */
 
 export interface RuleImpact {
-  fileName: string;
   // Human-readable rule identifier (e.g. "noIndentUnder(body)")
   rule: string;
   // Indentation delta in spaces (positive or negative)
@@ -68,13 +67,12 @@ export function clearLastRuleImpacts() {
  * Zero-delta changes are intentionally ignored to avoid noise.
  */
 export function recordRuleImpact(
-  fileName: string,
   rule: string,
   delta: number,
   line: number
 ): void {
   if ( delta !== 0 ) {
-    ruleImpacts.push( { fileName, rule, delta, line } );
+    ruleImpacts.push( { rule, delta, line } );
   }
 }
 
