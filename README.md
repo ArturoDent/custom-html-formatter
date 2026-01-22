@@ -8,8 +8,6 @@ A VS Code extension that formats HTML with selector-based indentation rules.
 
 - If you would like another formatter `rule`, please let me know in GitHub issues.  
 
-This formatter uses a structural indentation model, nearest‑ancestor rule attribution, and line‑based impact accounting.
-
 ## Status Bar and Problems View
 
 In this preview version, you will see a `Status Bar Item` that shows which html formatter is active and whether any `rules` have been set.  You can click on that Status Bar item to see relevant fixes.  
@@ -49,7 +47,14 @@ This setting, which defaults to `workspace`, will write or remove the settings e
   // This extension's custom HTMl formatter
   "[html]": {
     "editor.defaultFormatter": "ArturoDent.custom-html-formatter"
-  }
+  },
+    "customHtmlFormatter.rules": {
+    "noIndentUnder": [
+      "html",     // whatever you want here
+      "body"
+    ],
+    "indentSize": 2  // whatever size
+  },
 ```
 
 or  
@@ -92,9 +97,9 @@ This will set in the global or workspace settings, depending on the value you ch
   }
 ```
 
-It is **NOT** sufficient to merely comment out or remove a pre-existing `[html] "editor.defaultFormatter": ..."` setting.  VS Code will not then apply its default built-in html formatter - it will just act as if there is NO default html formatter and nothing will happen in your html files when you try to format!  
+If you comment out or remove a pre-existing `[html] "editor.defaultFormatter": "ArturoDent.custom-html-formatter"` setting  VS Code will  then apply its default built-in html formatter.  
 
-3. **Custom HTML Formatter: Get document changes but DO NOT apply any edits**  
+1. **Custom HTML Formatter: Get document changes but DO NOT apply any edits**  
 customHtmlFormatter.dryRun
 
 This will report what changes to the current html file would have been made if the formatter had executed edits.  But no edits will be made when this command is run - in a sense, it is a preview of applicable edits.  
