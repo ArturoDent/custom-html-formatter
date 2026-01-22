@@ -1,7 +1,7 @@
 import * as assert from "node:assert";
-import { getDocumentChanges } from "../../core/formatter";
-import type { FormatterRules } from "../../core/rules";
-import { summarizeRuleImpacts, type RuleImpact, type RuleImpactSummary } from "../../core/ruleImpact";
+import { getDocumentChanges } from "../../src/core/formatter";
+import type { FormatterRules } from "../../src/core/rules";
+import { summarizeRuleImpacts, type RuleImpact, type RuleImpactSummary } from "../../src/core/ruleImpact";
 
 function impactMap( summaries: RuleImpactSummary[] ) {
   return Object.fromEntries(

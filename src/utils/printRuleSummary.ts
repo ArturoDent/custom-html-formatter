@@ -1,5 +1,5 @@
-import { type RuleImpact, summarizeRuleImpacts } from "../../core/ruleImpact";
-import { getDryRunChannel } from '../../ui/output';
+import { type RuleImpact, summarizeRuleImpacts } from "../core/ruleImpact";
+import { getDryRunChannel } from '../ui/output';
 
 /**
  * Prints a concise, human-readable summary of rule impacts.

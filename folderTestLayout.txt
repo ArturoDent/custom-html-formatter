@@ -49,5 +49,14 @@ if (state === "active" && dryRunEnabled) {
         //   // actions.push(this.chooseFormatterAction());
         //   break;
 
-
+old scripts:
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./ && node scripts/copy-fixtures.js",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint && npm run copy:fixtures",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "copy:fixtures": "node scripts/copy-fixtures.js"
+  },
 

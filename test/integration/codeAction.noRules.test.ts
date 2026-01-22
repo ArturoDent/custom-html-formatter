@@ -1,16 +1,17 @@
 import * as assert from "node:assert";
 import * as vscode from "vscode";
-import { FormatterCodeActionProvider } from "../../ui/codeActions";
-import { DiagnosticCodes } from "../../ui/diagnostics";
+import { FormatterCodeActionProvider } from "../../src/ui/codeActions";
+import { DiagnosticCodes } from "../../src/ui/diagnostics";
 
 suite( "FormatterCodeActionProvider", () => {
+  // this.timeout( 0 ); // disable timeout entirely
 
   test( "NoRulesConfigured produces enable + restore actions", () => {
 
     const provider = new FormatterCodeActionProvider();
 
     const actions = provider.provideCodeActions(
-      {} as vscode.TextDocument,   // unused
+      {} as vscode.TextDocument,   // unused so make minimal
       {} as vscode.Range,          // unused
       {
         diagnostics: [

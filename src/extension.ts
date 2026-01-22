@@ -44,15 +44,52 @@ import {
 	clearLastRuleImpacts
 } from "./core/ruleImpact";
 
-// Test-only escape hatch for retrieving rule impacts.
-// This is intentionally not part of the public API.
+// Test-only escape work-around for getting rule impacts.
 let lastRuleImpacts: RuleImpact[] = [];
+
+let formatterDisposable: vscode.Disposable | undefined;
+const selector: vscode.DocumentSelector = [{ language: "html" }];
+
 
 export async function activate( context: vscode.ExtensionContext ) {
 
 	const configs = await computeCurrentConfigs();
 	initCurrentConfigs( configs );
 	setLastFormatterState( configs.formatterState );
+
+	const provider: vscode.DocumentFormattingEditProvider = {
+		async provideDocumentFormattingEdits(
+			document: vscode.TextDocument
+		): Promise<vscode.TextEdit[] | undefined> {
+
+			const rules = getCurrentConfigs()?.rules;
+
+			// Formatter is selected but not configured.
+			if ( !rules || !rules.noIndentUnder.length ) {
+				return undefined;
+			}
+
+			const original = document.getText();
+			const result = getDocumentChanges( original, rules );
+
+			// Internal runtime telemetry for health reporting.
+			setLastRuleImpacts( result.ruleImpacts );
+			recordFormatRun( document, result.ruleImpacts );
+
+			markFormatRunStarted();
+
+			if ( result.text === original ) return [];
+
+			const fullRange = new vscode.Range(
+				document.positionAt( 0 ),
+				document.positionAt( original.length )
+			);
+
+			return [vscode.TextEdit.replace( fullRange, result.text )];
+		}
+	};
+
+	await updateFormatter();
 
 	/**
 	 * Internal command used by formatter tests that do not run
@@ -64,6 +101,7 @@ export async function activate( context: vscode.ExtensionContext ) {
 			() => lastRuleImpacts
 		)
 	);
+
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
@@ -156,6 +194,9 @@ export async function activate( context: vscode.ExtensionContext ) {
 			initCurrentConfigs( configs );
 			setLastFormatterState( configs.formatterState );
 
+			// TODO: if (e.affectsConfiguration( "[html]" ))
+			await updateFormatter();
+
 			await updateFormatterStatusBar();
 
 			const diagnostics = computeFormatterDiagnostics();
@@ -201,45 +242,24 @@ export async function activate( context: vscode.ExtensionContext ) {
 
 	);
 
-	// ---------------- Formatter Provider ----------------
 
-	const selector: vscode.DocumentSelector = [{ language: "html" }];
+	async function updateFormatter() {
+		formatterDisposable?.dispose();
+		formatterDisposable = undefined;
 
-	const provider: vscode.DocumentFormattingEditProvider = {
-		async provideDocumentFormattingEdits(
-			document: vscode.TextDocument
-		): Promise<vscode.TextEdit[] | null> {
-
-			const rules = getCurrentConfigs()?.rules;
-
-			// Formatter is selected but not configured.
-			if ( !rules ) {
-				return [];
-			}
-
-			const original = document.getText();
-			const result = getDocumentChanges( original, rules );
-
-			// Internal runtime telemetry for health reporting.
-			setLastRuleImpacts( result.ruleImpacts );
-			recordFormatRun( document, result.ruleImpacts );
-
-			markFormatRunStarted();
-
-			if ( result.text === original ) return [];
-
-			const fullRange = new vscode.Range(
-				document.positionAt( 0 ),
-				document.positionAt( original.length )
-			);
-
-			return [vscode.TextEdit.replace( fullRange, result.text )];
+		const rules = getCurrentConfigs()?.rules;
+		if ( !rules || !rules.noIndentUnder.length ) {
+			return;
 		}
-	};
 
-	context.subscriptions.push(
-		vscode.languages.registerDocumentFormattingEditProvider( selector, provider )
-	);
+		formatterDisposable = vscode.languages.registerDocumentFormattingEditProvider(
+			selector,
+			provider
+		);
+
+		context.subscriptions.push( formatterDisposable );
+	}
 }
+
 
 export function deactivate() {}

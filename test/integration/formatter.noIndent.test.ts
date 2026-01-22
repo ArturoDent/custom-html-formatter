@@ -7,24 +7,39 @@ import { discoverFixtures } from "../utils/discoverFixtures";
 import { printLineDiff } from "../utils/printLineDiff";
 import { maybeUpdateFixture } from "../utils/updateFixture";
 import { loadFixtureConfig } from "../utils/loadFixtureConfig";
-import { printRuleSummary } from "../utils/printRuleSummary";
-import type { RuleImpact } from "../../core/ruleImpact";
+import { printRuleSummary } from "../../src/utils/printRuleSummary";
+import type { RuleImpact } from "../../src/core/ruleImpact";
+import { DEFAULT_RULES } from '../../src/core/rules';
+import { waitForFormatterPresence } from "../utils/waitForFormatterPresence";
+
 
 
 suite( "\nCustom HTML Formatter (no indent under html and body tags)", function () {
-  this.timeout( 0 ); // ⬅ disable timeout entirely
+  this.timeout( 0 ); // disable timeout entirely
 
   setup( async () => {
+
+    // change rules first! then defaultFormatter
+    await vscode.workspace
+      .getConfiguration( "customHtmlFormatter" )
+      .update( "rules", DEFAULT_RULES, vscode.ConfigurationTarget.Workspace );
+
     await vscode.workspace.getConfiguration()
       .update( "[html]", { "editor.defaultFormatter": "ArturoDent.custom-html-formatter" },
-        vscode.ConfigurationTarget.Global
+        vscode.ConfigurationTarget.Workspace
       );
   } );
 
   teardown( async () => {
     await vscode.workspace
       .getConfiguration( "customHtmlFormatter" )
-      .update( "rules", undefined, vscode.ConfigurationTarget.Global );
+      .update( "rules", undefined, vscode.ConfigurationTarget.Workspace );
+
+    await vscode.workspace.getConfiguration().update(
+      "[html]",
+      undefined,
+      vscode.ConfigurationTarget.Workspace
+    );
   } );
 
   const fixturesDir = path.resolve( __dirname, "../fixtures/no-indent" );
@@ -45,7 +60,7 @@ suite( "\nCustom HTML Formatter (no indent under html and body tags)", function 
         .update(
           "rules",
           Object.keys( rules ).length ? rules : undefined,
-          vscode.ConfigurationTarget.Global
+          vscode.ConfigurationTarget.Workspace
         );
 
       // Read fixtures: input and expected files
@@ -59,6 +74,9 @@ suite( "\nCustom HTML Formatter (no indent under html and body tags)", function 
       } );
 
       await vscode.window.showTextDocument( doc );
+
+      await waitForFormatterPresence( doc.uri, true );
+
       await vscode.commands.executeCommand( "editor.action.formatDocument" );
 
       const actual = doc.getText();

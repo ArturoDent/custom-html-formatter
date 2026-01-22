@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { getDocumentChanges } from '../core/formatter';
 import { loadRulesFromConfig } from '../core/rules';
 import { setLastDryRunImpacts } from '../state/formatRunState';
-import { printRuleSummary } from "../test/utils/printRuleSummary";
+import { printRuleSummary } from "../utils/printRuleSummary";
 import { getCurrentConfigs } from '../state/formatterState';
 
 
