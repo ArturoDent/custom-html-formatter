@@ -111,7 +111,6 @@ export function summarizeRuleImpacts( impacts: RuleImpact[] ): RuleImpactSummary
     map.set( impact.rule, ( map.get( impact.rule ) ?? 0 ) + 1 );
   }
 
-  // TODO: add fileName here ?
   return [...map.entries()].map( ( [rule, count] ) => ( {
     rule,
     count

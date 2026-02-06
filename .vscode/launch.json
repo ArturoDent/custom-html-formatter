@@ -23,9 +23,15 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/suite",
-				// "--user-data-dir=${workspaceFolder}/.vscode-test-user-data"
+				"--extensionTestsPath=${workspaceFolder}/out/test/debug/index.js",
+				// "--user-data-dir=${workspaceFolder}/.vscode-test-user-data",
+				"--folder-uri=${workspaceFolder}/test-workspace"
+			],
+			"outFiles": [
+				// "${workspaceFolder}/out/test/**/*.js"
+				"${workspaceFolder}/out/**/*.js"
 			]
 		}
 	]

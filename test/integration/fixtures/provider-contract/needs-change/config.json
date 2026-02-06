@@ -1,0 +1,8 @@
+{
+  "description": "rules + formatter = change expected",
+  "noIndentUnder": [
+    "html",
+    "body"
+  ],
+  "indentSize": 2
+}

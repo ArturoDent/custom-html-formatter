@@ -1,0 +1,8 @@
+{
+  "description": "indent grandchildren when originally flush left",
+  "noIndentUnder": [
+    "html",
+    "body"
+  ],
+  "indentSize": 2
+}

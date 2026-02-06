@@ -56,6 +56,12 @@ export function getDocumentChanges(
   rules: FormatterRules
 ): FormatResult {
 
+  // if ( !rules || rules.length === 0 ) {
+  // if ( !rules || rules.length === 0 ) {
+  //   console.log( "NO RULES → returning undefined" );
+  //   return undefined;
+  // }
+
   // Clear any previously recorded rule impacts before formatting.
   clearRuleImpacts();
 
@@ -97,7 +103,7 @@ export function getDocumentChanges(
  *
  * Source locations are essential for layout-preserving formatting.
  */
-function parseHtmlWithLocations( text: string ): any {
+export function parseHtmlWithLocations( text: string ): any {
   const parse5 = require( "parse5" ) as typeof import( "parse5" );
   return parse5.parse( text, { sourceCodeLocationInfo: true } );
 }
@@ -126,7 +132,7 @@ function parseHtmlWithLocations( text: string ): any {
  * This function enforces indentation rules while preserving
  * structural relationships between elements.
  */
-function collectIndentation(
+export function collectIndentation(
   node: Parse5Node,
   parent: ElementWithLocation | null,
   visualDepth: number,
@@ -139,10 +145,6 @@ function collectIndentation(
 
   if ( isDoctype( node ) ) return;
   if ( !isElement( node ) ) return;
-
-  // const editor = vscode.window.activeTextEditor;
-  // if ( !editor ) return;
-  // const document = editor.document;
 
   const el = node as ElementWithLocation;
   const loc = el.sourceCodeLocation;
@@ -166,19 +168,26 @@ function collectIndentation(
 
 
   // Apply indentation
-  indentByLine.set( loc.startLine, indent );
-  if ( loc.endTag?.startLine ) {
-    indentByLine.set( loc.endTag.startLine, indent );
+  // indentByLine.set( loc.startLine, indent );
+  // if ( loc.endTag?.startLine ) {
+  //   indentByLine.set( loc.endTag.startLine, indent );
+  // }
+
+  // Apply indentation
+  if ( !indentByLine.has( loc.startLine ) ) {
+    indentByLine.set( loc.startLine, indent );
   }
 
-  // const ruleTag =
-  //   rules.noIndentUnder.includes( parent?.tagName ?? "" )
-  //     ? parent!.tagName
-  //     : null;
+  if ( loc.endTag?.startLine ) {
+    const endLine = loc.endTag.startLine;
+    if ( !indentByLine.has( endLine ) ) {
+      indentByLine.set( endLine, indent );
+    }
+  }
 
   const parentTag = parent?.tagName;
   const ruleTag =
-    parentTag && rules.noIndentUnder.includes( parentTag )
+    parentTag && rules.noIndentUnder?.includes( parentTag )
       ? parentTag
       : null;
 
@@ -228,13 +237,8 @@ function collectIndentation(
   // Compute child visual depth
   let childVisualDepth = visualDepth + 1;
 
-  // // <html> is structural-only
-  // if ( el.tagName === "html" ) {
-  //   childVisualDepth = visualDepth;
-  // }
-
   // noIndentUnder creates a visual root (e.g. <body>)
-  if ( rules.noIndentUnder.includes( el.tagName ) ) {
+  if ( rules.noIndentUnder?.includes( el.tagName ) ) {
     childVisualDepth = 0;
   }
 

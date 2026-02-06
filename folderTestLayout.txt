@@ -59,4 +59,9 @@ old scripts:
     "test": "vscode-test",
     "copy:fixtures": "node scripts/copy-fixtures.js"
   },
+  
+      // "test:unit": "node ./out/test/unit/index.js",
+    // "test:integration": "node ./out/test/runTest.js",
+    "test": "npm run compile && npm run copy:fixtures && npm run test:unit && npm run test:integration"
+    
 

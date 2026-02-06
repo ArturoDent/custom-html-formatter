@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { getLastRuleImpacts, summarizeRuleImpacts } from "../core/ruleImpact";
 import { getLastRunMode, getLastDryRunImpacts, type FormatterLastRunMode } from './formatRunState';
-import { getLastFormatterState, getCurrentConfigs } from './formatterState';
+import { getLastFormatterState, getCurrentConfigs, CurrentConfigs } from './formatterState';
 
 export interface FormatterHealthSnapshot {
   version: 1;
@@ -15,7 +15,7 @@ export interface FormatterHealthSnapshot {
 
   configuration: {
     indentUnit: string;
-    noIndentUnder: string[];
+    noIndentUnder: string[] | "none";
     layoutPreserving: boolean;
   };
 
@@ -42,17 +42,18 @@ export function collectFormatterHealth(): FormatterHealthSnapshot {
     version: 1,
 
     status: {
-      // customFormatterConfigured: isFormatterActive(),
+      // customFormatterConfigured: isFormatterActive( configs ),
       customFormatterConfigured: formatterState?.startsWith( "active" ) ?? false,
       builtinFormatterDisabled: isBuiltinDisabled(),
-      writeScope: getWriteScope(),
+      writeScope: getWriteScope( configs ),
       lastRunMode: getLastRunMode()
     },
 
     configuration: {
-      indentUnit: getIndentUnit(),
-      // noIndentUnder: getNoIndentUnder(),
-      noIndentUnder: configs?.rules?.noIndentUnder ?? [],
+      indentUnit: getIndentUnit( configs ),
+      // noIndentUnder: getNoIndentUnder(configs),
+      noIndentUnder: configs?.rules?.noIndentUnder ?? "none",
+      // noIndentUnder: configs?.rules?.noIndentUnder ?? undefined,
       layoutPreserving: true,
     },
 
@@ -69,12 +70,16 @@ export function collectFormatterHealth(): FormatterHealthSnapshot {
 
 // Helpers --------------------------------------------------------------------
 
-function isFormatterActive(): boolean {
+function isFormatterActive( configs: CurrentConfigs | undefined ): boolean {
+
   const editor = vscode.window.activeTextEditor;
   if ( !editor ) return false;
-
   const doc = editor.document;
   if ( doc.languageId !== "html" ) return false;
+
+  // return configs?.formatterState?.startsWith( "active" ) ?? false,
+
+  return configs?.defaultFormatter === "ArturoDent.custom-html-formatter";
 
   const defaultFormatter = vscode.workspace.getConfiguration( '', { languageId: "html" } ).get( 'editor.defaultFormatter' );
   return defaultFormatter === "ArturoDent.custom-html-formatter";
@@ -93,21 +98,34 @@ function isBuiltinDisabled(): boolean {
 }
 
 // this looks at where rules are actually written, not the setting preference
-function getWriteScope(): "global" | "workspace" | "unset" {
+function getWriteScope( configs: CurrentConfigs | undefined ): "global" | "workspace" | "unset" {
 
-  const config = vscode.workspace.getConfiguration( "customHtmlFormatter" );
+  // const config = vscode.workspace.getConfiguration( "customHtmlFormatter" );
+  // const inspect = config.inspect( "rules" );
 
-  const inspect = config.inspect( "rules" );
-  if ( !inspect ) return "unset";
+  const scope = configs?.scope;
 
-  if ( inspect.workspaceValue !== undefined ) return "workspace";
-  if ( inspect.globalValue !== undefined ) return "global";
+  // if ( !scope ) return "unset";
 
-  return "unset";
+  return scope ?? "unset";
+
+  // if ( !inspect ) return "unset";
+
+  // if ( inspect.workspaceValue !== undefined ) return "workspace";
+  // if ( inspect.globalValue !== undefined ) return "global";
+
+  // return "unset";
 }
 
 // this is the indentation as found in editor.options, not the rules.indentSize
-function getIndentUnit(): string {
+function getIndentUnit( configs: CurrentConfigs | undefined ): string {
+
+  // const config = vscode.workspace.getConfiguration( "customHtmlFormatter" );
+
+  // const inspect = configs.inspect( "rules" );
+  const indentSize = configs?.rules?.indentSize;
+  // TODO: if (!indentSize) renderIndentUnit with no indentSize rule, using editor default
+
   const editor = vscode.window.activeTextEditor;
   if ( !editor ) return renderIndentUnit( "  " );
 
@@ -143,7 +161,7 @@ function renderIndentUnit( unit: string ): string {
 //   ],
 //     "indentSize": 2;
 // }
-function getNoIndentUnder(): string[] {
+function getNoIndentUnder( configs: CurrentConfigs | undefined ): string[] {
   const config = vscode.workspace.getConfiguration( "customHtmlFormatter.rules" );
   return config.get<string[]>( "noIndentUnder", [] );
 }
@@ -177,12 +195,20 @@ function getLastRunSnapshot():
 }
 
 
-function computeHealthNotes(
-  snapshot: FormatterHealthSnapshot
-): string[] {
+function computeHealthNotes( snapshot: FormatterHealthSnapshot ): string[] {
+
   const notes: string[] = [];
 
-  if ( snapshot.status.customFormatterConfigured ) {
+  if ( snapshot.status.customFormatterConfigured &&
+    snapshot.configuration.noIndentUnder === "none" && snapshot.configuration.indentUnit ) {
+    notes.push(
+      `Custom HTML Formatter is selected as the default formatter for HTML files, 
+      but no rules are configured. VS Code will NOT fall back to the built-in HTML formatter 
+      while this setting is present. Formatting may appear disabled.\n`
+    );
+  }
+
+  else if ( snapshot.status.customFormatterConfigured ) {
     notes.push(
       "Custom HTML Formatter is configured as the default formatter for HTML files."
     );

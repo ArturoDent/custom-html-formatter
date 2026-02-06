@@ -1,0 +1,8 @@
+{
+  "description": "format direct children of body and html flush left",
+  "noIndentUnder": [
+    "html",
+    "body"
+  ],
+  "indentSize": 2
+}

@@ -48,7 +48,7 @@ export async function computeCurrentConfigs() {
   const defaultFormatter = vscode.workspace.getConfiguration( '', { languageId: "html" } ).get( 'editor.defaultFormatter' );
 
   let rulesRaw = vscode.workspace.getConfiguration( "customHtmlFormatter" ).get( "rules" );
-  let rules = loadRulesFromConfig( rulesRaw ) ?? null;;  // can return undefined
+  let rules = loadRulesFromConfig( rulesRaw ) ?? null;  // can return undefined
 
   const formatterState = computeFormatterState( defaultFormatter, rules );
 
@@ -75,6 +75,7 @@ export type FormatterState =
 
 // Cached formatter state used for UI interactions.
 // Updated whenever getFormatterState() is called.
+// export let lastFormatterState: FormatterState | undefined;
 export let lastFormatterState: FormatterState | undefined;
 
 export function getLastFormatterState(): FormatterState | undefined {
@@ -101,7 +102,7 @@ export function getFormatterState( configs: any ): FormatterState {
   return state;
 }
 
-function computeFormatterState( defaultFormatter: string | unknown, rules: any ): FormatterState {
+export function computeFormatterState( defaultFormatter: string | unknown, rules: any ): FormatterState {
 
   // No default formatter configured for HTML.
   if ( !defaultFormatter ) return "noFormatter";
@@ -113,9 +114,11 @@ function computeFormatterState( defaultFormatter: string | unknown, rules: any )
   // rules could be an empty array or only have indentSize or only noIndentUnder
   // rules: null or noIndentUnder.length === 0 or indentSize always present with default length
 
+  if ( rules && Object.keys( rules ).length === 0 ) return "activeNoRules";
+
   if ( !rules?.noIndentUnder?.length ) return "activeNoIndentUnder";
 
-  return rules ? "activeRules" : "activeNoRules";
+  return rules ? "activeRules" : "activeNoRules"; // TODO: another state "unknown"?
 }
 
 /**
@@ -183,9 +186,11 @@ export async function restoreBuiltinHtmlFormatter() {
 
 export async function showQuickPickOptions() {
 
-  // const scope = await getConfigWriteScope();
   const currentConfigs = getCurrentConfigs();
   const scope = currentConfigs?.scope;
+
+  // TODO: use formatter state to narrow
+  // const state = getLastFormatterState();
 
   const selections = await vscode.window.showQuickPick(
     [
@@ -285,30 +290,36 @@ async function updateRules( patch: Partial<FormatterRules>, target: vscode.Confi
   );
 }
 
-async function showOpenSettingsPrompt( message: string, target: vscode.ConfigurationTarget ) {
+export async function showOpenSettingsPrompt( message: string, target: vscode.ConfigurationTarget ) {
 
   const strTarget = target === vscode.ConfigurationTarget.Workspace ? "workspace" : "global";
   const choice = await vscode.window.showInformationMessage(
     message,
-    `Open ${strTarget} Settings`
+    `Open ${strTarget} Settings`,
+    `Enable default rules`
   );
 
-  if ( choice !== `Open ${strTarget} Settings` ) {
-    return;
+  if ( choice === `Open ${strTarget} Settings` ) {
+
+    const settingId = "customHtmlFormatter.rules";
+    const encoded = encodeURIComponent( `"${settingId}"` );
+
+    const command =
+      target === vscode.ConfigurationTarget.Workspace
+        ? "workbench.action.openWorkspaceSettingsFile"
+        : "workbench.action.openSettingsJson";
+
+    await vscode.commands.executeCommand(
+      command,
+      encoded
+    );
   }
 
-  const settingId = "customHtmlFormatter.rules";
-  const encoded = encodeURIComponent( `"${settingId}"` );
-
-  const command =
-    target === vscode.ConfigurationTarget.Workspace
-      ? "workbench.action.openWorkspaceSettingsFile"
-      : "workbench.action.openSettingsJson";
-
-  await vscode.commands.executeCommand(
-    command,
-    encoded
-  );
+  else if ( choice === `Enable default rules` ) {
+    await vscode.workspace
+      .getConfiguration( "customHtmlFormatter" )
+      .update( "rules", DEFAULT_RULES, target );
+  }
 }
 
 

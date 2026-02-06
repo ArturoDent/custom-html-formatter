@@ -1,0 +1,7 @@
+{
+  "noIndentUnder": [
+    "html",
+    "body"
+  ],
+  "indentSize": 2
+}

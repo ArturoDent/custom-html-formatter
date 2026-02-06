@@ -9,7 +9,6 @@ export const formatterStatusBar =
   );
 
 formatterStatusBar.command = "customHtmlFormatter.statusClick";
-// context.subscriptions.push( formatterStatusBar );
 
 export function showFormatterStatusBar() {
   formatterStatusBar.show();
@@ -28,6 +27,7 @@ export function hideFormatterStatusBar() {
 export async function updateFormatterStatusBar() {
 
   const state = getLastFormatterState();
+  if ( !state ) return;
 
   switch ( state ) {
     // Custom formatter is selected and has rules configured.
@@ -104,5 +104,7 @@ export async function updateFormatterStatusBar() {
     // Non-HTML editors or unsupported contexts.
     default:
       formatterStatusBar.hide();
+      const _exhaustive: never = state;
+      return _exhaustive;
   }
 }

@@ -1,8 +1,8 @@
 const fs = require( "fs" );
 const path = require( "path" );
 
-const src = path.resolve( __dirname, "../test/fixtures" );
-const dest = path.resolve( __dirname, "../out/test/fixtures" );
+const src = path.resolve( __dirname, "../test/integration/fixtures" );
+const dest = path.resolve( __dirname, "../out/test/integration/fixtures" );
 
 function copyRecursive( srcDir, destDir ) {
   fs.mkdirSync( destDir, { recursive: true } );
@@ -21,4 +21,4 @@ function copyRecursive( srcDir, destDir ) {
 
 copyRecursive( src, dest );
 
-console.log( "✔ Fixtures copied recursively" );
+console.log( "✔ Fixtures copied." );

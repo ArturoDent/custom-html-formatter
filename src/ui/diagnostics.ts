@@ -1,5 +1,10 @@
 import * as vscode from "vscode";
-import { getLastFormatterState } from "../state/formatterState";
+import { getLastFormatterState, type FormatterState } from "../state/formatterState";
+
+export interface SimpleDiagnostic {
+  code: string;
+  message: string;
+}
 
 export const formatterDiagnostics =
   vscode.languages.createDiagnosticCollection( "custom-html-formatter" );
@@ -29,47 +34,96 @@ export const DiagnosticCodes = {
 export function computeFormatterDiagnostics(): vscode.Diagnostic[] {
 
   const state = getLastFormatterState();
-  const diagnostics: vscode.Diagnostic[] = [];
+  const simple = getStateDiagnostics( state );
 
-  // No formatter is configured for HTML at all.
-  if ( state === "noFormatter" ) {
+  // TODO: what happens here when the state === undefined ?
+  return simple.map( s => {
     const diag = new vscode.Diagnostic(
       new vscode.Range( 0, 0, 0, 0 ),
-      "No default formatter is configured for HTML files.",
+      s.message,
       vscode.DiagnosticSeverity.Warning
     );
-    diag.code = DiagnosticCodes.NoDefaultFormatter;
+    diag.code = s.code;
     diag.source = "Custom HTML Formatter";
-    diagnostics.push( diag );
-  }
+    return diag;
+  } );
+}
+// export function computeFormatterDiagnostics(): vscode.Diagnostic[] {
 
-  // The custom formatter is selected, but has no rules.
-  // Formatting will run but produce no changes.
-  else if ( state === "activeNoRules" ) {
-    const diag = new vscode.Diagnostic(
-      new vscode.Range( 0, 0, 0, 0 ),
-      "Custom HTML Formatter is selected, but no rules are configured.",
-      vscode.DiagnosticSeverity.Warning
-    );
-    diag.code = DiagnosticCodes.NoRulesConfigured;
-    diag.source = "Custom HTML Formatter";
-    diagnostics.push( diag );
-  }
+//   const state = getLastFormatterState();
+//   const diagnostics: vscode.Diagnostic[] = [];
 
-  // The custom formatter is selected, but has no rules.
-  // Formatting will run but produce no changes.
-  else if ( state === "activeNoIndentUnder" ) {
-    const diag = new vscode.Diagnostic(
-      new vscode.Range( 0, 0, 0, 0 ),
-      "Custom HTML Formatter is selected, but rule.noIndentUnder is missing.",
-      vscode.DiagnosticSeverity.Warning
-    );
-    diag.code = DiagnosticCodes.NoIndentUnderMissing;
-    diag.source = "Custom HTML Formatter";
-    diagnostics.push( diag );
-  }
+//   // No formatter is configured for HTML at all.
+//   if ( state === "noFormatter" ) {
+//     const diag = new vscode.Diagnostic(
+//       new vscode.Range( 0, 0, 0, 0 ),
+//       "No default formatter is configured for HTML files.",
+//       vscode.DiagnosticSeverity.Warning
+//     );
+//     diag.code = DiagnosticCodes.NoDefaultFormatter;
+//     diag.source = "Custom HTML Formatter";
+//     diagnostics.push( diag );
+//   }
 
-  return diagnostics;
+//   // The custom formatter is selected, but has no rules.
+//   // Formatting will run but produce no changes.
+//   else if ( state === "activeNoRules" ) {
+//     const diag = new vscode.Diagnostic(
+//       new vscode.Range( 0, 0, 0, 0 ),
+//       "Custom HTML Formatter is selected, but no rules are configured.",
+//       vscode.DiagnosticSeverity.Warning
+//     );
+//     diag.code = DiagnosticCodes.NoRulesConfigured;
+//     diag.source = "Custom HTML Formatter";
+//     diagnostics.push( diag );
+//   }
+
+//   // The custom formatter is selected, but has no rules.
+//   // Formatting will run but produce no changes.
+//   else if ( state === "activeNoIndentUnder" ) {
+//     const diag = new vscode.Diagnostic(
+//       new vscode.Range( 0, 0, 0, 0 ),
+//       "Custom HTML Formatter is selected, but rule.noIndentUnder is missing.",
+//       vscode.DiagnosticSeverity.Warning
+//     );
+//     diag.code = DiagnosticCodes.NoIndentUnderMissing;
+//     diag.source = "Custom HTML Formatter";
+//     diagnostics.push( diag );
+//   }
+
+//   return diagnostics;
+// }
+
+export function getStateDiagnostics( state: FormatterState | undefined ): SimpleDiagnostic[] {
+
+  switch ( state ) {
+    case "noFormatter":
+      return [
+        {
+          code: DiagnosticCodes.NoDefaultFormatter,
+          message: "No default formatter is configured for HTML files."
+        }
+      ];
+
+    case "activeNoRules":
+      return [
+        {
+          code: DiagnosticCodes.NoRulesConfigured,
+          message: "Custom HTML Formatter is selected, but no rules are configured."
+        }
+      ];
+
+    case "activeNoIndentUnder":
+      return [
+        {
+          code: DiagnosticCodes.NoIndentUnderMissing,
+          message: "Custom HTML Formatter is selected, but rule.noIndentUnder is missing."
+        }
+      ];
+
+    default:
+      return [];
+  }
 }
 
 

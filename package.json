@@ -93,13 +93,13 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p tsconfig.json",
+    "compile": "tsc -p tsconfig.json && npm run copy:fixtures",
     "watch": "tsc -p tsconfig.json --watch",
     "lint": "eslint src",
     "copy:fixtures": "node scripts/copy-fixtures.js",
-    "test:unit": "node ./out/test/unit/index.js",
-    "test:integration": "node ./out/test/runTest.js",
-    "test": "npm run compile && npm run copy:fixtures && npm run test:unit && npm run test:integration"
+    "test": "npm run compile && npm run copy:fixtures && npm run test:unit",
+    "test:unit": "mocha out/test/unit/**/*.js",
+    "test:watch": "mocha --watch out/test/unit/**/*.js"
   },
   "dependencies": {
     "parse5": "^7.1.2"

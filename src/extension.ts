@@ -17,7 +17,7 @@ import {
 	enableDefaults,
 	restoreBuiltinHtmlFormatter,
 	showQuickPickOptions,
-	getCurrentConfigs
+	showOpenSettingsPrompt
 } from "./state/formatterState";
 import { executeDryRun } from "./ui/dryRun";
 import { formatterStatusBar, updateFormatterStatusBar, showFormatterStatusBar, hideFormatterStatusBar } from "./ui/statusBar";
@@ -25,6 +25,7 @@ import { formatterDiagnostics, computeFormatterDiagnostics, updateAllHtmlDiagnos
 import { registerFormatterCodeActions } from "./ui/codeActions";
 import { collectFormatterHealth } from "./state/formatterHealth";
 import { renderHealthSnapshot } from "./state/formatterHealthOutput";
+import { provider } from "./core/provider";
 
 import {
 	getLastFormattedUri,
@@ -37,7 +38,6 @@ import {
 } from "./state/formatRunState";
 
 import { getDocumentChanges } from "./core/formatter";
-import { loadRulesFromConfig } from "./core/rules";
 import {
 	type RuleImpact,
 	setLastRuleImpacts,
@@ -47,8 +47,12 @@ import {
 // Test-only escape work-around for getting rule impacts.
 let lastRuleImpacts: RuleImpact[] = [];
 
+// Test-only, force custom formatter to be registered even if there are no rules
+let _forceRegisterForTests = false;
+
 let formatterDisposable: vscode.Disposable | undefined;
 const selector: vscode.DocumentSelector = [{ language: "html" }];
+
 
 
 export async function activate( context: vscode.ExtensionContext ) {
@@ -57,37 +61,50 @@ export async function activate( context: vscode.ExtensionContext ) {
 	initCurrentConfigs( configs );
 	setLastFormatterState( configs.formatterState );
 
-	const provider: vscode.DocumentFormattingEditProvider = {
-		async provideDocumentFormattingEdits(
-			document: vscode.TextDocument
-		): Promise<vscode.TextEdit[] | undefined> {
+	// const provider: vscode.DocumentFormattingEditProvider = {
+	// 	async provideDocumentFormattingEdits(
+	// 		document: vscode.TextDocument
+	// 	): Promise<vscode.TextEdit[] | undefined> {
 
-			const rules = getCurrentConfigs()?.rules;
+	// 		// const rules = getCurrentConfigs()?.rules;
+	// 		const rules = ( await computeCurrentConfigs() ).rules;
 
-			// Formatter is selected but not configured.
-			if ( !rules || !rules.noIndentUnder.length ) {
-				return undefined;
-			}
+	// 		// Formatter is selected but not configured.
+	// 		if ( !rules || !rules.noIndentUnder.length ) {
+	// 			return undefined;
+	// 		}
 
-			const original = document.getText();
-			const result = getDocumentChanges( original, rules );
+	// 		const original = document.getText();
+	// 		const result = getDocumentChanges( original, rules );
 
-			// Internal runtime telemetry for health reporting.
-			setLastRuleImpacts( result.ruleImpacts );
-			recordFormatRun( document, result.ruleImpacts );
+	// 		// Internal runtime telemetry for health reporting.
+	// 		setLastRuleImpacts( result.ruleImpacts );
+	// 		recordFormatRun( document, result.ruleImpacts );
 
-			markFormatRunStarted();
+	// 		markFormatRunStarted();
 
-			if ( result.text === original ) return [];
+	// 		// Normalize EOLs for comparison so CRLF vs LF doesn't look like a change
+	// 		const normalize = ( s: string ) => s.replace( /\r\n/g, "\n" );
+	// 		if ( normalize( result.text ) === normalize( original ) ) return undefined;
 
-			const fullRange = new vscode.Range(
-				document.positionAt( 0 ),
-				document.positionAt( original.length )
-			);
+	// 		// Convert formatter output to the document's EOL before returning the edit
+	// 		const eol = document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+	// 		const textWithDocEol = result.text.replace( /\r\n|\n/g, eol );
 
-			return [vscode.TextEdit.replace( fullRange, result.text )];
-		}
-	};
+	// 		const fullRange = new vscode.Range( document.positionAt( 0 ), document.positionAt( original.length ) );
+	// 		return [vscode.TextEdit.replace( fullRange, textWithDocEol )];
+
+
+	// 		// if ( result.text === original ) return undefined;
+
+	// 		// const fullRange = new vscode.Range(
+	// 		// 	document.positionAt( 0 ),
+	// 		// 	document.positionAt( original.length )
+	// 		// );
+
+	// 		// return [vscode.TextEdit.replace( fullRange, result.text )];
+	// 	}
+	// };
 
 	await updateFormatter();
 
@@ -145,7 +162,7 @@ export async function activate( context: vscode.ExtensionContext ) {
 
 	// Status bar click
 	context.subscriptions.push(
-		vscode.commands.registerCommand( "customHtmlFormatter.statusClick", async () => {
+		vscode.commands.registerCommand( "customHtmlFormatter.statusClick", async ( args ) => {
 			await showQuickPickOptions();
 		} )
 	);
@@ -203,7 +220,7 @@ export async function activate( context: vscode.ExtensionContext ) {
 			updateAllHtmlDiagnostics( diagnostics );
 		} ),
 
-		vscode.window.onDidChangeActiveTextEditor( async () => {
+		vscode.window.onDidChangeActiveTextEditor( async ( event ) => {
 
 			if ( vscode.window.activeTextEditor?.document.languageId === "html" ) {
 				await updateFormatterStatusBar();
@@ -244,21 +261,50 @@ export async function activate( context: vscode.ExtensionContext ) {
 
 
 	async function updateFormatter() {
+
 		formatterDisposable?.dispose();
 		formatterDisposable = undefined;
 
-		const rules = getCurrentConfigs()?.rules;
-		if ( !rules || !rules.noIndentUnder.length ) {
+		const currentConfig = await computeCurrentConfigs();
+		const rules = currentConfig.rules;
+		const customFormatter = ( currentConfig.defaultFormatter === "ArturoDent.custom-html-formatter" );
+
+		if ( customFormatter && !rules ) {
+			// if ( customFormatter && !rules && !_forceRegisterForTests ) {
+
+			const target = ( currentConfig.scope === "workspace" ) ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global;
+			showOpenSettingsPrompt( `Custom HTML Formatter is selected as the default formatter for HTML files, 
+				but no rules are configured. VS Code will NOT fall back to the built-in HTML formatter while this
+				setting is present. Formatting may appear disabled.`
+				, target );
 			return;
 		}
 
-		formatterDisposable = vscode.languages.registerDocumentFormattingEditProvider(
-			selector,
-			provider
-		);
+		if ( !customFormatter ) return;
 
-		context.subscriptions.push( formatterDisposable );
+		// if ( !_forceRegisterForTests && ( !rules || !Array.isArray( rules.noIndentUnder ) || rules.noIndentUnder.length === 0 ) ) {
+		if ( !rules || !Array.isArray( rules.noIndentUnder ) || rules.noIndentUnder.length === 0 ) {
+			return;
+		}
+
+		if ( customFormatter ) {
+			formatterDisposable = vscode.languages.registerDocumentFormattingEditProvider(
+				selector,
+				provider
+			);
+		}
+
+		if ( formatterDisposable ) context.subscriptions.push( formatterDisposable );
 	}
+}
+
+// export function __test_forceRegisterFormatterForTests( enable: boolean ) {
+// 	_forceRegisterForTests = enable;
+// }
+
+
+function normalize( text: string ): string {
+	return text.replace( /\r\n/g, "\n" ).replace( /\s+$/, "\n" );
 }
 
 

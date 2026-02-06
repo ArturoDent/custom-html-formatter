@@ -1,2 +1,9 @@
 {
+  "customHtmlFormatter.rules": {},
+  "[html]": {
+    "editor.defaultFormatter": "ArturoDent.custom-html-formatter"
+  }
+  // "[html]": {
+  //   "editor.defaultFormatter": "ArturoDent.custom-html-formatter"
+  // }
 }

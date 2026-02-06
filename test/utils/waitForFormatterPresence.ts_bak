@@ -1,0 +1,27 @@
+import * as vscode from "vscode";
+
+export async function waitForCustomFormatterState(
+  shouldBeActive: boolean,
+  timeoutMs = 2000
+): Promise<void> {
+  const start = Date.now();
+
+  while ( Date.now() - start < timeoutMs ) {
+    const current = vscode.workspace
+      .getConfiguration( "", { languageId: "html" } )
+      .get( "editor.defaultFormatter" );
+
+    const isActive = ( current === "ArturoDent.custom-html-formatter" );
+
+    if ( isActive === shouldBeActive ) {
+      return;
+    }
+
+    await new Promise( r => setTimeout( r, 50 ) );
+  }
+
+  throw new Error(
+    `Timed out waiting for custom formatter to ${shouldBeActive ? "activate" : "deactivate"
+    }`
+  );
+}

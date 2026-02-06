@@ -6,7 +6,7 @@ export interface FormatterRules {
   // Tags whose direct children should not be indented
   noIndentUnder: string[];
   // Number of spaces per indentation level
-  indentSize: number;
+  indentSize: number | undefined;
 }
 
 export const DEFAULT_RULES: FormatterRules = {
@@ -44,12 +44,16 @@ export function loadRulesFromConfig( raw: any ): FormatterRules | undefined {
   return {
     noIndentUnder: Array.isArray( raw.noIndentUnder )
       ? raw.noIndentUnder.map( String )
-      : [],
+      : ( typeof raw.noIndentUnder === "string" )
+        ? [raw.noIndentUnder]
+        // : [],     // not an array or a string
+        : undefined,     // not an array or a string
 
     // Default indentation size is applied only when rules exist.
     indentSize: typeof raw.indentSize === "number"
       ? raw.indentSize
-      : DEFAULT_RULES.indentSize
+      // : DEFAULT_RULES.indentSize
+      : undefined
   };
 }
 

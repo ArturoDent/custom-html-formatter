@@ -20,6 +20,8 @@ export default [{
             format: ["camelCase", "PascalCase"],
         }],
 
+        // "@typescript-eslint/switch-exhaustiveness-check": "error",
+
         curly: "off",
         eqeqeq: "warn",
         "no-throw-literal": "warn",

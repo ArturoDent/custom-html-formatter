@@ -1,0 +1,73 @@
+
+// // npm install vscode-html-languageservice
+
+// // Step 2 — Create a small script that formats HTML exactly like the Test Host
+// // This script uses the same format() function the Test Host calls.;
+// // tools/formatWithHtmlService.ts
+// // This produces exactly the same output as the Test Host.
+
+// import { getLanguageService } from "vscode-html-languageservice";
+
+// export function formatHtmlWithService( input: string ): string {
+//   const ls = getLanguageService();
+
+//   const edits = ls.format(
+//     // The HTML document
+//     {
+//       getText: () => input,
+//       positionAt: ( offset: number ) => ( { line: 0, character: offset } ),
+//       offsetAt: () => 0,
+//       lineCount: 1,
+//       uri: "test://test.html",
+//       languageId: "html",
+//       version: 1
+//     } as any,
+//     // Formatting options (Test Host ignores indentInnerHtml)
+//     {
+//       tabSize: 2,
+//       insertSpaces: true,
+//       wrapLineLength: 120,
+//       unformatted: "",
+//       contentUnformatted: "",
+//       indentInnerHtml: false, // ignored by the service
+//       preserveNewLines: true
+//     }
+//   );
+
+//   let result = input;
+//   for ( let i = edits.length - 1; i >= 0; i-- ) {
+//     const e = edits[i];
+//     result =
+//       result.slice( 0, e.range.start ) +
+//       e.newText +
+//       result.slice( e.range.end );
+//   }
+
+//   return result;
+// }
+
+// // Step 3 — Generate expected fixtures
+
+// // tools/generateExpectedNoRules.ts
+// import * as fs from "fs";
+// import * as path from "path";
+// import { formatHtmlWithService } from "./formatWithHtmlService";
+
+// const fixturesDir = path.resolve( __dirname, "../test/fixtures/no-rules" );
+
+// for ( const file of fs.readdirSync( fixturesDir ) ) {
+//   if ( !file.endsWith( ".input.html" ) ) continue;
+
+//   const inputPath = path.join( fixturesDir, file );
+//   const expectedPath = inputPath.replace( ".input.html", ".expected.html" );
+
+//   const input = fs.readFileSync( inputPath, "utf8" );
+//   const formatted = formatHtmlWithService( input );
+
+//   fs.writeFileSync( expectedPath, formatted, "utf8" );
+//   console.log( "Updated:", expectedPath );
+// }
+
+
+// // node tools/generateExpectedNoRules.js  // run it
+// // This regenerates all your.expected.html files using the same formatter the Test Host uses.
