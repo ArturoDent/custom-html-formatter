@@ -99,30 +99,13 @@ function isBuiltinDisabled(): boolean {
 
 // this looks at where rules are actually written, not the setting preference
 function getWriteScope( configs: CurrentConfigs | undefined ): "global" | "workspace" | "unset" {
-
-  // const config = vscode.workspace.getConfiguration( "customHtmlFormatter" );
-  // const inspect = config.inspect( "rules" );
-
   const scope = configs?.scope;
-
-  // if ( !scope ) return "unset";
-
   return scope ?? "unset";
-
-  // if ( !inspect ) return "unset";
-
-  // if ( inspect.workspaceValue !== undefined ) return "workspace";
-  // if ( inspect.globalValue !== undefined ) return "global";
-
-  // return "unset";
 }
 
 // this is the indentation as found in editor.options, not the rules.indentSize
 function getIndentUnit( configs: CurrentConfigs | undefined ): string {
 
-  // const config = vscode.workspace.getConfiguration( "customHtmlFormatter" );
-
-  // const inspect = configs.inspect( "rules" );
   const indentSize = configs?.rules?.indentSize;
   // TODO: if (!indentSize) renderIndentUnit with no indentSize rule, using editor default
 

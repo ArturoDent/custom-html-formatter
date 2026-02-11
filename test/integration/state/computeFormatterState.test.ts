@@ -46,20 +46,3 @@ suite( "computeFormatterState()", () => {
   } );
 
 } );
-
-// function computeFormatterState( defaultFormatter: string | unknown, rules: any ): FormatterState {
-
-//   // No default formatter configured for HTML.
-//   if ( !defaultFormatter ) return "noFormatter";
-
-//   // A formatter is configured, but it is not the custom formatter.
-//   if ( defaultFormatter !== "ArturoDent.custom-html-formatter" ) return "builtin";
-
-//   // The formatter is considered active even if it produces no changes.
-//   // rules could be an empty array or only have indentSize or only noIndentUnder
-//   // rules: null or noIndentUnder.length === 0 or indentSize always present with default length
-
-//   if ( !rules?.noIndentUnder?.length ) return "activeNoIndentUnder";
-
-//   return rules ? "activeRules" : "activeNoRules";
-// }

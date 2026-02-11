@@ -5,7 +5,8 @@
 		"module": "Node16",
 		"target": "ES2022",
 		"sourceMap": true,
-		"strict": true
+		"strict": true,
+		"allowJs": true
 	},
 	"include": [
 		"src",

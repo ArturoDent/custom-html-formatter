@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+// use in dryRun.ts only
 
 import { type Parse5Node, isElement, isDoctype } from '../core/parser';
 import type { FormatterRules } from './rules';

@@ -46,7 +46,6 @@ export function loadRulesFromConfig( raw: any ): FormatterRules | undefined {
       ? raw.noIndentUnder.map( String )
       : ( typeof raw.noIndentUnder === "string" )
         ? [raw.noIndentUnder]
-        // : [],     // not an array or a string
         : undefined,     // not an array or a string
 
     // Default indentation size is applied only when rules exist.

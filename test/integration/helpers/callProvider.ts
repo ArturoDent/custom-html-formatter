@@ -1,15 +1,18 @@
 import * as vscode from "vscode";
 import { provider } from "../../../src/core/provider";
+import { getCurrentConfigs } from '../../../src/state/formatterState';
+
 
 export async function callProviderDirectly(
   doc: vscode.TextDocument
 ): Promise<vscode.TextEdit[] | undefined> {
 
   const token = new vscode.CancellationTokenSource().token;
+  const rules = getCurrentConfigs()?.rules;
 
   const formattingOptions: vscode.FormattingOptions = {
     insertSpaces: true,
-    tabSize: 2
+    tabSize: rules?.indentSize ?? 2
   };
 
   const result = await provider.provideDocumentFormattingEdits(

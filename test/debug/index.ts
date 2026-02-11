@@ -14,6 +14,7 @@ export async function run(): Promise<void> {
   const mocha = new Mocha( {
     ui: "tdd",
     color: true,
+    slow: 300,
     timeout: 0
   } );
 

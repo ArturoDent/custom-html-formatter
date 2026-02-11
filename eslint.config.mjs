@@ -11,7 +11,8 @@ export default [{
     languageOptions: {
         parser: tsParser,
         ecmaVersion: 2022,
-        sourceType: "module",
+        sourceType: "module"
+
     },
 
     rules: {
@@ -19,6 +20,8 @@ export default [{
             selector: "import",
             format: ["camelCase", "PascalCase"],
         }],
+        "@typescript-eslint/no-unsafe-assignment": "error",
+        "@typescript-eslint/no-unsafe-member-access": "error",
 
         // "@typescript-eslint/switch-exhaustiveness-check": "error",
 

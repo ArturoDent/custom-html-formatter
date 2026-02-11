@@ -4,7 +4,6 @@ import { FormatterCodeActionProvider } from "../../../src/ui/codeActions";
 import { DiagnosticCodes } from "../../../src/ui/diagnostics";
 
 suite( "FormatterCodeActionProvider", () => {
-  // this.timeout( 0 ); // disable timeout entirely
 
   test( "NoRulesConfigured produces enable + restore actions", () => {
 

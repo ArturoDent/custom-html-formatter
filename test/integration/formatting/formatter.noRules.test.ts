@@ -2,13 +2,14 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
+import { scheduleFormatterUpdate } from '../../../src/extension';
 import { setAllConfigs } from "../helpers/updateSettings";
 import { applyFormatEdits } from "../helpers/applyFormatEdits";
 
 
 
 suite( "Custom HTML Formatter + no rules → fallback to built-in", function () {
-  this.timeout( 0 );
+  // this.timeout( 0 );
 
   const fixtureDir = path.resolve(
     __dirname,
@@ -20,16 +21,18 @@ suite( "Custom HTML Formatter + no rules → fallback to built-in", function () 
 
   setup( async () => {
     await setAllConfigs( "vscode.html-language-features", undefined );
+    // Wait for the extension to process the configuration change and finish registration/unregistration
+    await scheduleFormatterUpdate();
   } );
 
   teardown( async () => {
     await setAllConfigs( undefined, undefined );
+    // Wait for the extension to process the configuration change and finish registration/unregistration
+    await scheduleFormatterUpdate();
   } );
 
 
   test( "html and body to flush left, nothing else changes", async () => {
-    // Explicitly clear rules again inside the test
-    // await setAllConfigs( "vscode.html-language-features", undefined );
 
     const input = fs.readFileSync( inputPath, "utf8" );
     const expected = fs.readFileSync( expectedPath, "utf8" );

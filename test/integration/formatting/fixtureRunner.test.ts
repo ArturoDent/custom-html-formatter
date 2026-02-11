@@ -2,6 +2,7 @@ import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 
+import { scheduleFormatterUpdate } from '../../../src/extension';
 import { FormatterRules } from '../../../src/core/rules';
 import { openFixtureDocument } from "../helpers/documents";
 import { setAllConfigs } from "../helpers/updateSettings";
@@ -39,6 +40,9 @@ suite( "Golden Fixtures", async () => {
 
           await setAllConfigs( "ArturoDent.custom-html-formatter", rules );
 
+          // Wait for the extension to process the configuration change and finish registration/unregistration
+          await scheduleFormatterUpdate();
+
           const input = await openFixtureDocument( `${group}/input.html` );
           const expected = fs.readFileSync(
             path.join( groupFolder, "expected.html" ),
@@ -71,6 +75,9 @@ suite( "Golden Fixtures", async () => {
           }
 
           await setAllConfigs( "ArturoDent.custom-html-formatter", rules );
+
+          // Wait for the extension to process the configuration change and finish registration/unregistration
+          await scheduleFormatterUpdate();
 
           const input = await openFixtureDocument(
             `${group}/${testCase}/input.html`

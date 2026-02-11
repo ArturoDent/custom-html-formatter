@@ -1,6 +1,7 @@
 import * as assert from "node:assert";
 import * as vscode from "vscode";
-import { setHtmlFormatter, setRules, setRulesToDefaults, setAllConfigs } from "../helpers/updateSettings";
+import { scheduleFormatterUpdate } from '../../../src/extension';
+import { setAllConfigs } from "../helpers/updateSettings";
 
 
 function newlineTokens( s: string ): string[] {
@@ -8,19 +9,18 @@ function newlineTokens( s: string ): string[] {
 }
 
 suite( "\nCustom HTML Formatter newline regression)", function () {
-  this.timeout( 0 ); // ⬅ disable timeout entirely
+  // this.timeout( 0 ); // ⬅ disable timeout entirely
 
   setup( async () => {
-    // await setRulesToDefaults();
-    // await setHtmlFormatter( "ArturoDent.custom-html-formatter" );
     await setAllConfigs( "ArturoDent.custom-html-formatter", { indentSize: 2, noIndentUnder: ["html"] } );
+    // Wait for the extension to process the configuration change and finish registration/unregistration
+    await scheduleFormatterUpdate();
   } );
 
   teardown( async () => {
-    // await setHtmlFormatter( undefined );
-    // await setRules( undefined );
     await setAllConfigs( undefined, undefined );
-
+    // Wait for the extension to process the configuration change and finish registration/unregistration
+    await scheduleFormatterUpdate();
   } );
 
   test( "does not add or remove newline tokens", async () => {
