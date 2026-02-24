@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import { getLastRuleImpacts, summarizeRuleImpacts } from "../core/ruleImpact";
 import { getLastRunMode, getLastDryRunImpacts, type FormatterLastRunMode } from './formatRunState';
-import { getLastFormatterState, getCurrentConfigs, CurrentConfigs } from './formatterState';
+import { getLastFormatterState } from './formatterState';
+import { getCurrentConfigs, CurrentConfigs } from '../core/configs';
 
 export interface FormatterHealthSnapshot {
   version: 1;
@@ -70,20 +71,17 @@ export function collectFormatterHealth(): FormatterHealthSnapshot {
 
 // Helpers --------------------------------------------------------------------
 
-function isFormatterActive( configs: CurrentConfigs | undefined ): boolean {
+// function isFormatterActive( configs: CurrentConfigs | undefined ): boolean {
 
-  const editor = vscode.window.activeTextEditor;
-  if ( !editor ) return false;
-  const doc = editor.document;
-  if ( doc.languageId !== "html" ) return false;
+//   const editor = vscode.window.activeTextEditor;
+//   if ( !editor ) return false;
+//   const doc = editor.document;
+//   if ( doc.languageId !== "html" ) return false;
 
-  // return configs?.formatterState?.startsWith( "active" ) ?? false,
+//   // return configs?.formatterState?.startsWith( "active" ) ?? false,
 
-  return configs?.defaultFormatter === "ArturoDent.custom-html-formatter";
-
-  const defaultFormatter = vscode.workspace.getConfiguration( '', { languageId: "html" } ).get( 'editor.defaultFormatter' );
-  return defaultFormatter === "ArturoDent.custom-html-formatter";
-}
+//   return configs?.defaultFormatter === "ArturoDent.custom-html-formatter";
+// }
 
 
 function isBuiltinDisabled(): boolean {

@@ -1,7 +1,7 @@
 import * as assert from "node:assert";
 import * as vscode from "vscode";
 import { scheduleFormatterUpdate } from '../../../src/extension';
-import { setAllConfigs } from "../helpers/updateSettings";
+import { setAllConfigs } from "../../helpers/updateSettings";
 
 
 function newlineTokens( s: string ): string[] {

@@ -1,9 +1,7 @@
 import * as vscode from "vscode";
-import {
-  enableDefaults,
-  restoreBuiltinHtmlFormatter,
-  showQuickPickOptions,
-} from '../state/formatterState';
+import { enableJsBeautifyOnly, enableAllWithDefaults, setDefaultHtmlFormatter } from '../core/configs';
+
+import { showQuickPickOptions } from '../ui/quickPick';
 import { executeDryRun } from "../ui/dryRun";
 import { collectFormatterHealth } from "../state/formatterHealth";
 import { renderHealthSnapshot } from "../state/formatterHealthOutput";
@@ -25,11 +23,24 @@ export function registerCommands( context: vscode.ExtensionContext ) {
     )
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "customHtmlFormatter.setDefaultHtmlFormatter",
+      setDefaultHtmlFormatter
+    )
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "customHtmlFormatter.enableWithDefaults",
-      enableDefaults
+      "customHtmlFormatter.enableJsBeautifyOnly",
+      enableJsBeautifyOnly
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "customHtmlFormatter.enableAllWithDefaults",
+      enableAllWithDefaults
     )
   );
 
@@ -52,7 +63,9 @@ export function registerCommands( context: vscode.ExtensionContext ) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "customHtmlFormatter.restoreBuiltinHtmlFormatter",
-      restoreBuiltinHtmlFormatter,
+      // restoreBuiltinHtmlFormatter,
+      setDefaultHtmlFormatter,
+      ["vscode.html-language-features"]    // *** does this pass the string correctly ?      
     )
   );
 

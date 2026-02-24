@@ -8,7 +8,7 @@
     "url": "https://github.com/ArturoDent/custom-html-formatter"
   },
   "license": "MIT",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engines": {
     "vscode": "^1.107.0"
   },
@@ -22,13 +22,18 @@
   "contributes": {
     "commands": [
       {
-        "command": "customHtmlFormatter.enableWithDefaults",
-        "title": "Create defaultFormatter and rules settings",
+        "command": "customHtmlFormatter.enableAllWithDefaults",
+        "title": "Enable both js-beautify and Custom HTML Formatter and rules",
+        "category": "Custom HTML Formatter"
+      },
+      {
+        "command": "customHtmlFormatter.enableJsBeautifyOnly",
+        "title": "Enable js-beautify and disable the Custom HTML Formatter",
         "category": "Custom HTML Formatter"
       },
       {
         "command": "customHtmlFormatter.restoreBuiltinHtmlFormatter",
-        "title": "Revert to default html formatter",
+        "title": "Revert to default html formatter (disable js-beautify and the CustomHTML Formatter)",
         "category": "Custom HTML Formatter"
       },
       {
@@ -45,6 +50,16 @@
     "configuration": {
       "title": "Custom HTML Formatter",
       "properties": {
+        "customHtmlFormatter.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable the Custom HTML Formatter - will run after js-beautify (if enabled) which formats html files."
+        },
+        "customHtmlFormatter.jsBeautifyEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable js-beautify - will run instead of the built-in html formatter."
+        },
         "customHtmlFormatter.rules": {
           "type": "object",
           "default": {},
@@ -102,6 +117,7 @@
     "test:watch": "mocha --watch out/test/unit/**/*.js"
   },
   "dependencies": {
+    "js-beautify": "^1.15.4",
     "parse5": "^7.1.2"
   },
   "devDependencies": {

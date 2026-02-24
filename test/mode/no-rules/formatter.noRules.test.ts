@@ -3,12 +3,12 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { scheduleFormatterUpdate } from '../../../src/extension';
-import { setAllConfigs } from "../helpers/updateSettings";
-import { applyFormatEdits } from "../helpers/applyFormatEdits";
+import { setAllConfigs } from "../../helpers/updateSettings";
+import { applyFormatEdits } from "../../helpers/applyFormatEdits";
 
 
 
-suite( "Custom HTML Formatter + no rules → fallback to built-in", function () {
+suite( "jsBeautify + Custom HTML Formatter + no rules → js-beautify only formatting", function () {
   // this.timeout( 0 );
 
   const fixtureDir = path.resolve(
@@ -20,7 +20,8 @@ suite( "Custom HTML Formatter + no rules → fallback to built-in", function () 
   const expectedPath = path.join( fixtureDir, "expected.html" );
 
   setup( async () => {
-    await setAllConfigs( "vscode.html-language-features", undefined );
+    // await setAllConfigs( "vscode.html-language-features", undefined );
+    await setAllConfigs( "ArturoDent.custom-html-formatter", undefined );
     // Wait for the extension to process the configuration change and finish registration/unregistration
     await scheduleFormatterUpdate();
   } );
@@ -44,7 +45,7 @@ suite( "Custom HTML Formatter + no rules → fallback to built-in", function () 
     await new Promise( ( r ) => setTimeout( r, 50 ) );
 
     const edits = await applyFormatEdits( doc );
-    console.log( "Providers returned edits count:", edits.length );
+    console.log( "      Providers returned edits count:", edits.length );
 
     const actual = doc.getText();
 
@@ -59,4 +60,5 @@ suite( "Custom HTML Formatter + no rules → fallback to built-in", function () 
 
 function normalize( text: string ): string {
   return text.replace( /\r\n/g, "\n" ).replace( /\s+$/, "\n" );
+  // return text.replace( /\r\n/g, "\n" );
 }

@@ -9,17 +9,14 @@ export interface SimpleDiagnostic {
 export const formatterDiagnostics =
   vscode.languages.createDiagnosticCollection( "custom-html-formatter" );
 
-/**
- * Diagnostic codes emitted by the Custom HTML Formatter.
- */
+// Diagnostic codes emitted by the Custom HTML Formatter.
 export const DiagnosticCodes = {
-  NoDefaultFormatter: "noDefaultFormatter",
+  JsBeautifyEnabledNotDefault: "jsBeautifyEnabledNotDefault",
+  CustomFormatterEnabledNotDefault: "customFormatterEnabledNotDefault",
+  CustomFormatterEnabledJsBeautifyDisabled: "customFormatterEnabledJsBeautifyDisabled",
+  // JsBeautifyDisabled: "jsBeautifyDisabled",
   NoRulesConfigured: "noRulesConfigured",
   NoIndentUnderMissing: "noIndentUnderMissing"
-
-  // Reserved for future rule-level diagnostics.
-  // Currently rule impacts are surfaced via formatter health instead.
-  // RuleImpact: "ruleImpact"
 } as const;
 
 
@@ -48,60 +45,33 @@ export function computeFormatterDiagnostics(): vscode.Diagnostic[] {
     return diag;
   } );
 }
-// export function computeFormatterDiagnostics(): vscode.Diagnostic[] {
 
-//   const state = getLastFormatterState();
-//   const diagnostics: vscode.Diagnostic[] = [];
-
-//   // No formatter is configured for HTML at all.
-//   if ( state === "noFormatter" ) {
-//     const diag = new vscode.Diagnostic(
-//       new vscode.Range( 0, 0, 0, 0 ),
-//       "No default formatter is configured for HTML files.",
-//       vscode.DiagnosticSeverity.Warning
-//     );
-//     diag.code = DiagnosticCodes.NoDefaultFormatter;
-//     diag.source = "Custom HTML Formatter";
-//     diagnostics.push( diag );
-//   }
-
-//   // The custom formatter is selected, but has no rules.
-//   // Formatting will run but produce no changes.
-//   else if ( state === "activeNoRules" ) {
-//     const diag = new vscode.Diagnostic(
-//       new vscode.Range( 0, 0, 0, 0 ),
-//       "Custom HTML Formatter is selected, but no rules are configured.",
-//       vscode.DiagnosticSeverity.Warning
-//     );
-//     diag.code = DiagnosticCodes.NoRulesConfigured;
-//     diag.source = "Custom HTML Formatter";
-//     diagnostics.push( diag );
-//   }
-
-//   // The custom formatter is selected, but has no rules.
-//   // Formatting will run but produce no changes.
-//   else if ( state === "activeNoIndentUnder" ) {
-//     const diag = new vscode.Diagnostic(
-//       new vscode.Range( 0, 0, 0, 0 ),
-//       "Custom HTML Formatter is selected, but rule.noIndentUnder is missing.",
-//       vscode.DiagnosticSeverity.Warning
-//     );
-//     diag.code = DiagnosticCodes.NoIndentUnderMissing;
-//     diag.source = "Custom HTML Formatter";
-//     diagnostics.push( diag );
-//   }
-
-//   return diagnostics;
-// }
-
+// used in tests also
 export function getStateDiagnostics( state: FormatterState | undefined ): SimpleDiagnostic[] {
 
   switch ( state ) {
-    case "noFormatter":
+    case "customFormatterEnabledNotDefault":
       return [
         {
-          code: DiagnosticCodes.NoDefaultFormatter,
-          message: "No default formatter is configured for HTML files."
+          code: DiagnosticCodes.CustomFormatterEnabledNotDefault,
+          message: "The Custom HTML Formatter is enabled but defaultFormatter is not."
+        }
+      ];
+
+
+    case "jsBeautifyEnabledNotDefault":
+      return [
+        {
+          code: DiagnosticCodes.JsBeautifyEnabledNotDefault,
+          message: "js-beautify is enabled but defaultFormatter is not."
+        }
+      ];
+
+    case "customFormatterEnabledJsBeautifyDisabled":
+      return [
+        {
+          code: DiagnosticCodes.CustomFormatterEnabledJsBeautifyDisabled,
+          message: "Custom HTML Formatter is enabled but js-beautify is disabled."
         }
       ];
 
@@ -109,7 +79,7 @@ export function getStateDiagnostics( state: FormatterState | undefined ): Simple
       return [
         {
           code: DiagnosticCodes.NoRulesConfigured,
-          message: "Custom HTML Formatter is selected, but no rules are configured."
+          message: "Custom HTML Formatter is enabled, but no rules are configured."
         }
       ];
 
@@ -117,7 +87,7 @@ export function getStateDiagnostics( state: FormatterState | undefined ): Simple
       return [
         {
           code: DiagnosticCodes.NoIndentUnderMissing,
-          message: "Custom HTML Formatter is selected, but rule.noIndentUnder is missing."
+          message: "Custom HTML Formatter is enabled, but rule.noIndentUnder is missing."
         }
       ];
 

@@ -59,54 +59,45 @@ export class FormatterCodeActionProvider
     }
     return actions;
   }
-
-  // private chooseFormatterAction() {
-  //   const action = new vscode.CodeAction(
-  //     "Choose HTML formatter…",
-  //     vscode.CodeActionKind.QuickFix
-  //   );
-  //   action.command = {
-  //     command: "customHtmlFormatter._internal.chooseFormatter",
-  //     title: "Choose Formatter"
-  //   };
-  //   return action;
-  // }
-
-  // private enableDefaultsAction( noRules: boolean = true ) {
-  //   const action = new vscode.CodeAction(
-  //     "Enable Custom Formatter (defaults)",
-  //     vscode.CodeActionKind.QuickFix
-  //   );
-  //   action.command = {
-  //     command: "customHtmlFormatter.enableWithDefaults",
-  //     arguments: [noRules],
-  //     title: "Enable Formatter"
-  //   };
-  //   return action;
-  // }
-
-  // private restoreBuiltinAction() {
-  //   const action = new vscode.CodeAction(
-  //     "Restore built-in HTML formatter",
-  //     vscode.CodeActionKind.QuickFix
-  //   );
-  //   action.command = {
-  //     command: "customHtmlFormatter.restoreBuiltinHtmlFormatter",
-  //     title: "Restore Built-in"
-  //   };
-  //   return action;
-  // }
 }
 
 export function makeCodeActions( code: string ): SimpleAction[] {
 
   switch ( code ) {
 
-    case DiagnosticCodes.NoDefaultFormatter:
+    case DiagnosticCodes.CustomFormatterEnabledNotDefault:
       return [
         {
-          title: "Choose HTML formatter…",
-          command: "customHtmlFormatter._internal.chooseFormatter"
+          title: "Set Custom Formatter to `defaultFormatter` (Custom Formatter is already enabled)",
+          command: "customHtmlFormatter.setDefaultHtmlFormatter",
+          arguments: ["ArturoDent.custom-html-formatter"]
+        },
+        // {
+        //   title: "Restore built-in HTML formatter",
+        //   command: "customHtmlFormatter.restoreBuiltinHtmlFormatter"
+        // }
+      ];
+
+    case DiagnosticCodes.JsBeautifyEnabledNotDefault:
+      return [
+        {
+          title: "Set Custom Formatter to `defaultFormatter` (js-beautify is already  enabled)",
+          // command: "customHtmlFormatter._internal.chooseFormatter"
+          command: "customHtmlFormatter.enableAllWithDefaults",
+          arguments: ["ArturoDent.custom-html-formatter"]
+        },
+        // {
+        //   title: "Restore built-in HTML formatter",
+        //   command: "customHtmlFormatter.restoreBuiltinHtmlFormatter"
+        // }
+      ];
+
+    case DiagnosticCodes.CustomFormatterEnabledJsBeautifyDisabled:
+      return [
+        {
+          title: "Enable js-beautify (Custom Formatter is enabled)",
+          // command: "customHtmlFormatter._internal.chooseFormatter"
+          command: "customHtmlFormatter.enableJsBeautifyOnly"
         },
         {
           title: "Restore built-in HTML formatter",
@@ -118,9 +109,8 @@ export function makeCodeActions( code: string ): SimpleAction[] {
     case DiagnosticCodes.NoIndentUnderMissing:
       return [
         {
-          // TODO: say enable default rules
           title: "Enable Custom Formatter's default rules",
-          command: "customHtmlFormatter.enableWithDefaults",
+          command: "customHtmlFormatter.enableAllWithDefaults",
           arguments: [true]
         },
         {

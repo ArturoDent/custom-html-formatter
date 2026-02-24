@@ -1,9 +1,10 @@
+import * as vscode from "vscode";
 import * as assert from "assert";
 import * as fs from "fs";
 import * as path from "path";
 
-import { scheduleFormatterUpdate } from '../../../src/extension';
-import { FormatterRules } from '../../../src/core/rules';
+import { scheduleFormatterUpdate } from '../../src/extension';
+import { FormatterRules } from '../../src/core/rules';
 import { openFixtureDocument } from "../helpers/documents";
 import { setAllConfigs } from "../helpers/updateSettings";
 import { applyFormatEdits } from "../helpers/applyFormatEdits";
@@ -40,6 +41,9 @@ suite( "Golden Fixtures", async () => {
 
           await setAllConfigs( "ArturoDent.custom-html-formatter", rules );
 
+          // 🔥 Ensure extension is activated BEFORE updateFormatter runs
+          await vscode.extensions.getExtension( "ArturoDent.custom-html-formatter" )?.activate();
+
           // Wait for the extension to process the configuration change and finish registration/unregistration
           await scheduleFormatterUpdate();
 
@@ -75,6 +79,9 @@ suite( "Golden Fixtures", async () => {
           }
 
           await setAllConfigs( "ArturoDent.custom-html-formatter", rules );
+
+          // 🔥 Ensure extension is activated BEFORE updateFormatter runs
+          await vscode.extensions.getExtension( "ArturoDent.custom-html-formatter" )?.activate();
 
           // Wait for the extension to process the configuration change and finish registration/unregistration
           await scheduleFormatterUpdate();

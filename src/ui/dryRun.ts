@@ -3,7 +3,7 @@ import { getDocumentChanges } from '../core/formatter';
 import { loadRulesFromConfig } from '../core/rules';
 import { setLastDryRunImpacts } from '../state/formatRunState';
 import { printRuleSummary } from "../utils/printRuleSummary";
-import { getCurrentConfigs } from '../state/formatterState';
+import { getCurrentConfigs } from '../core/configs';
 
 
 export function executeDryRun() {

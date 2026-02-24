@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { provider } from "../../../src/core/provider";
-import { getCurrentConfigs } from '../../../src/state/formatterState';
+import { provider } from "../../src/core/provider";
+import { getCurrentConfigs } from '../../src/core/configs';
 
 
 export async function callProviderDirectly(

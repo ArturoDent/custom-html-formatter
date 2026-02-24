@@ -25,7 +25,5 @@ export async function applyFormatEdits(
   wsEdit.set( doc.uri, edits );
   await vscode.workspace.applyEdit( wsEdit );
 
-  // Ensure the document is up to date before returning
-  // (openTextDocument returns the same doc instance; getText will reflect applied edits)
   return edits;
 }

@@ -1,0 +1,6 @@
+{
+  "description": "use built-in",
+  "defaultFormatter": "vscode.html-language-features",
+  "customFormatter": true,
+  "js-beautify": true
+}

@@ -74,6 +74,16 @@ export async function updateFormatterStatusBar() {
       break;
 
     // VS Code's built-in formatter will be used.
+    case "jsBeautifyEnabledNotDefault":
+      formatterStatusBar.text = "js-beautify disabled";
+      formatterStatusBar.color = undefined;
+      formatterStatusBar.backgroundColor = undefined;
+      formatterStatusBar.tooltip =
+        "Using VS Code's built-in HTML formatter";
+      formatterStatusBar.show();
+      break;
+
+    // VS Code's built-in formatter will be used.
     case "builtin":
       formatterStatusBar.text = "Built-in Formatter enabled";
       formatterStatusBar.color = undefined;
@@ -83,22 +93,30 @@ export async function updateFormatterStatusBar() {
       formatterStatusBar.show();
       break;
 
+    case "customFormatterEnabledJsBeautifyDisabled":
+      formatterStatusBar.text = "js-beautify disabled";
+      formatterStatusBar.color = undefined;
+      formatterStatusBar.backgroundColor = undefined;
+      formatterStatusBar.tooltip =
+        "Using VS Code's built-in HTML formatter";
+      formatterStatusBar.show();
+      break;
+
     // No formatter is configured for HTML at all.
     // This is a broken state and warrants a gentle prompt.
-    case "noFormatter":
-      formatterStatusBar.text = "$(error) No default Html formatter";
-      formatterStatusBar.color = new vscode.ThemeColor(
-        "statusBarItem.errorForeground"
-      );
-      formatterStatusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.errorBackground"
-      );
-      formatterStatusBar.tooltip =
-        "Click to select a formatter";
-      formatterStatusBar.show();
+    // case "noFormatter":
+    case "customFormatterEnabledNotDefault":   //  ****
+      //   formatterStatusBar.text = "$(error) Custom Formatter disabled";
+      //   formatterStatusBar.color = new vscode.ThemeColor(
+      //     "statusBarItem.errorForeground"
+      //   );
+      //   formatterStatusBar.backgroundColor = new vscode.ThemeColor(
+      //     "statusBarItem.errorBackground"
+      //   );
+      //   formatterStatusBar.tooltip =
+      //     "Click to select a formatter";
+      //   formatterStatusBar.show();
 
-      // Prompt is debounced to avoid repeated interruptions.
-      // showDebouncedPromptForDefaultFormatter();
       break;
 
     // Non-HTML editors or unsupported contexts.

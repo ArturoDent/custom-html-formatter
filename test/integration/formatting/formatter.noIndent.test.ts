@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { scheduleFormatterUpdate } from '../../../src/extension';
-import { setRules, setAllConfigs } from "../helpers/updateSettings";
+import { setRules, setAllConfigs } from "../../helpers/updateSettings";
 
 
 suite( "Custom HTML Formatter - noIndentUnder", function () {
@@ -86,4 +86,5 @@ suite( "Custom HTML Formatter - noIndentUnder", function () {
 
 function normalize( text: string ): string {
   return text.replace( /\r\n/g, "\n" ).replace( /\s+$/, "\n" );
+  // return text.replace( /\r\n/g, "\n" );
 }

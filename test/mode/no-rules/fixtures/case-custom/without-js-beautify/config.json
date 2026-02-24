@@ -1,0 +1,6 @@
+{
+  "description": "custom w/no js-beauitfy = use built-in",
+  "defaultFormatter": "ArturoDent.custom-html-formatter",
+  "customFormatter": true,
+  "js-beautify": false
+}

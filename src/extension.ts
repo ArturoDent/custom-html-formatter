@@ -1,5 +1,8 @@
 import * as vscode from "vscode";
-import { setLastFormatterState, initCurrentConfigs, computeCurrentConfigs, showOpenSettingsPrompt } from "./state/formatterState";
+import { initCurrentConfigs, computeCurrentConfigs, CurrentConfigs, getDefaultHtmlFormatter, setDefaultHtmlFormatter } from "./core/configs";
+import { setLastFormatterState } from "./state/formatterState";
+import { showOpenSettingsPrompt } from "./ui/quickPick";
+
 import { formatterStatusBar, updateFormatterStatusBar, showFormatterStatusBar } from "./ui/statusBar";
 import { formatterDiagnostics, computeFormatterDiagnostics, updateAllHtmlDiagnostics } from "./ui/diagnostics";
 import { registerFormatterCodeActions } from "./ui/codeActions";
@@ -19,7 +22,8 @@ export async function activate( context: vscode.ExtensionContext ) {
 	initCurrentConfigs( configs );
 	setLastFormatterState( configs.formatterState );
 
-	await updateFormatter();
+	// await updateFormatter();
+	await scheduleFormatterUpdate();
 
 	registerEventListeners( context );
 	registerCommands( context );
@@ -50,40 +54,86 @@ export async function activate( context: vscode.ExtensionContext ) {
 }
 
 async function updateFormatter() {
-
 	formatterDisposable?.dispose();
 	formatterDisposable = undefined;
 
-	const currentConfig = await computeCurrentConfigs();
-	const rules = currentConfig.rules;
-	const customFormatter = ( currentConfig.defaultFormatter === "ArturoDent.custom-html-formatter" );
+	const currentConfigs: CurrentConfigs = await computeCurrentConfigs();
+	const { customFormatterEnabled, jsBeautifyEnabled, rules, scope, defaultFormatter } = currentConfigs;
 
-	if ( customFormatter && !rules ) {
-		// TODO: force the built-in formatter (change settings)?
-		// or remove the  "[html].editor.defaultFormatter" entry so vscode asks which formatter to use
+	const target =
+		scope === "workspace"
+			? vscode.ConfigurationTarget.Workspace
+			: vscode.ConfigurationTarget.Global;
 
-		const target = ( currentConfig.scope === "workspace" ) ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global;
-		showOpenSettingsPrompt( `Custom HTML Formatter is selected as the default formatter for HTML files, 
-				but no rules are configured. VS Code will NOT fall back to the built-in HTML formatter while this
-				setting is present. Formatting may appear disabled.`
-			, target );
+	// ---------------------------------------------------------
+	// 1. If js-beautify is disabled, we cannot register ANY formatter
+	// ---------------------------------------------------------
+	if ( !jsBeautifyEnabled ) {
+
+		if ( defaultFormatter !== "vscode.html-language-features" )   // TODO: set to undefined ?
+			await setDefaultHtmlFormatter( "vscode.html-language-features" );
+
+		if ( customFormatterEnabled ) {
+			showOpenSettingsPrompt(
+				"The Custom HTML Formatter is enabled, but js-beautify is NOT enabled. The built-in VS Code HTML formatter will be applied.",
+				target
+			);
+		}
+		// do not register
 		return;
 	}
 
-	if ( !customFormatter ) return;
+	// ---------------------------------------------------------
+	// 2. js-beautify is enabled, but custom formatter is disabled
+	//    → still register provider (js-beautify-only mode)
+	// ---------------------------------------------------------
+	if ( !customFormatterEnabled ) {
+		showOpenSettingsPrompt(
+			"The Custom HTML Formatter is NOT enabled, js-beautify is enabled. The js-beautify HTML formatter will be applied.",
+			target
+		);
 
-	if ( !rules || !Array.isArray( rules.noIndentUnder ) || rules.noIndentUnder.length === 0 ) {
-		return;
-	}
+		// Still register provider (it will run js-beautify only)
+		if ( defaultFormatter !== "ArturoDent.custom-html-formatter" )
+			await setDefaultHtmlFormatter( "ArturoDent.custom-html-formatter" );
 
-	if ( customFormatter ) {
 		formatterDisposable = vscode.languages.registerDocumentFormattingEditProvider(
 			selector,
 			provider
 		);
+		extensionContext.subscriptions.push( formatterDisposable );
+		return;
 	}
 
-	if ( formatterDisposable ) extensionContext.subscriptions.push( formatterDisposable );
+	// ---------------------------------------------------------
+	// 3. Custom formatter is enabled, but rules are missing
+	//    → warn, but STILL register provider
+	// ---------------------------------------------------------
+	const noRules =
+		!rules ||
+		!Array.isArray( rules.noIndentUnder ) ||
+		rules.noIndentUnder.length === 0;
+
+	if ( noRules ) {
+		showOpenSettingsPrompt(
+			"The Custom HTML Formatter is enabled, but no rules are configured. Only js-beautify HTML formatting will be applied.",
+			target
+		);
+		// Still register provider (js-beautify-only mode)
+	}
+
+	// ---------------------------------------------------------
+	// 4. Register provider ALWAYS when js-beautify is enabled
+	// ---------------------------------------------------------
+	if ( defaultFormatter !== "ArturoDent.custom-html-formatter" )
+		await setDefaultHtmlFormatter( "ArturoDent.custom-html-formatter" );
+
+	formatterDisposable = vscode.languages.registerDocumentFormattingEditProvider(
+		selector,
+		provider
+	);
+
+	extensionContext.subscriptions.push( formatterDisposable );
 }
 
 // module scope
@@ -106,11 +156,6 @@ export async function scheduleFormatterUpdate(): Promise<void> {
 	} )();
 
 	return lastUpdatePromise;
-}
-
-
-function normalize( text: string ): string {
-	return text.replace( /\r\n/g, "\n" ).replace( /\s+$/, "\n" );
 }
 
 

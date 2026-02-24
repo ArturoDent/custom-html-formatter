@@ -1,8 +1,11 @@
 {
-  "customHtmlFormatter.rules": {},
   "[html]": {
+    "editor.suggest.insertMode": "replace",
     "editor.defaultFormatter": "ArturoDent.custom-html-formatter"
-  }
+  },
+  "customHtmlFormatter.enabled": true,
+  "customHtmlFormatter.jsBeautifyEnabled": true,
+  "customHtmlFormatter.rules": {}
   // "[html]": {
   //   "editor.defaultFormatter": "ArturoDent.custom-html-formatter"
   // }

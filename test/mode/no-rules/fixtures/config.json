@@ -1,0 +1,6 @@
+{
+  "description": "format direct children of body and html flush left",
+  "defaultFormatter": "ArturoDent.custom-html-formatter",
+  "customFormatter": true,
+  "js-beautify": true
+}

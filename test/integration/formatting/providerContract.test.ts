@@ -1,13 +1,13 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { scheduleFormatterUpdate } from '../../../src/extension';
-import { loadFixture } from "../helpers/fixtures";
-import { setAllConfigs } from "../helpers/updateSettings";
-import { callProviderDirectly } from "../helpers/callProvider";
+import { loadFixture } from "../../helpers/fixtures";
+import { setAllConfigs } from "../../helpers/updateSettings";
+import { callProviderDirectly } from "../../helpers/callProvider";
 
 suite( "Provider Return Contract", () => {
 
-  test( "no rules → provider returns undefined", async () => {
+  test( "no rules → provider returns []", async () => {
     await setAllConfigs( "ArturoDent.custom-html-formatter", undefined );
     // Wait for the extension to process the configuration change and finish registration/unregistration
     await scheduleFormatterUpdate();
@@ -17,10 +17,12 @@ suite( "Provider Return Contract", () => {
 
     const edits = await callProviderDirectly( doc );
 
-    assert.strictEqual( edits, undefined );
+    // assert.deepStrictEqual( edits, [] );  // same as 
+    assert.ok( Array.isArray( edits ) );
+    assert.strictEqual( edits.length, 0 );
   } );
 
-  test( "rules exist but no changes → provider returns undefined", async () => {
+  test( "rules exist but no changes → provider returns []", async () => {
     await setAllConfigs( "ArturoDent.custom-html-formatter", { indentSize: 2, noIndentUnder: ["html"] } );
     // Wait for the extension to process the configuration change and finish registration/unregistration
     await scheduleFormatterUpdate();
@@ -30,7 +32,9 @@ suite( "Provider Return Contract", () => {
 
     const edits = await callProviderDirectly( doc );
 
-    assert.strictEqual( edits, undefined );
+    // assert.deepStrictEqual( edits, [] );
+    assert.ok( Array.isArray( edits ) );
+    assert.strictEqual( edits.length, 0 );
   } );
 
   test( "rules exist and changes occur → provider returns one full-range edit", async () => {

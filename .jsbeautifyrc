@@ -1,0 +1,12 @@
+{
+  "html": {
+    "_comment": "do indent head/body, default = true",
+    "indent_inner_html": true,
+    
+    "_comment": "do indent under <head>, default = false",    
+    "indent_head_inner_html": true,
+    
+    "_comment": "do indent under <body>, default = false",
+    "indent_body_inner_html": true
+  }
+}
